@@ -18,14 +18,25 @@
     "url": "https://github.com/dyihoon90/glogging/issues"
   },
   "homepage": "https://github.com/dyihoon90/glogging#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@js-joda/core": "^3.2.0",
+    "express": "^4.17.1",
+    "js-joda": "^1.11.0",
+    "lodash": "^4.17.20",
+    "winston": "^3.3.3"
+  },
   "devDependencies": {
+    "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
+    "@types/lodash": "^4.14.161",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^2.27.0",
     "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
     "jest": "^25.1.0",
     "jest-html-reporters": "^2.0.1",
+    "prettier": "^2.0.4",
     "ts-jest": "^26.4.0",
     "typescript": "^4.0.3"
   }

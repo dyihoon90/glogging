@@ -3,17 +3,13 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:prettier/recommended"
   ],
-  "plugins": ["import", "@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json"
-  },
-  "settings": {
-    "import/resolver": {
-      "babel-module": {}
-    }
   },
   "env": {
     "browser": true,
@@ -129,9 +125,8 @@
     "@typescript-eslint/no-use-before-define": ["off", { "functions": true }],
     "@typescript-eslint/no-floating-promises": "off",
     "@typescript-eslint/no-unsafe-assignment": "off",
-    "@typescript-eslint/no-unsafe-call" : "off",
-    "@typescript-eslint/no-unsafe-member-access" : "off",
-    "@typescript-eslint/no-unsafe-return" : "error"
-
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "error"
   }
 }
