@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Run CI per push to Github repo
 
 on: [push]
 
