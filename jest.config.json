@@ -1,0 +1,18 @@
+{
+  "testEnvironment": "node",
+  "verbose": true,
+  "setupFiles": [],
+  "testTimeout": 10000,
+  "testMatch": ["**/__tests__/**/*.test.[jt]s?(x)"],
+  "reporters": [
+    "default",
+    [
+      "jest-html-reporters",
+      {
+        "publicPath": "./test-report",
+        "filename": "dwp_hrps_test_report.html",
+        "pageTitle": "Test Report"
+      }
+    ]
+  ]
+}

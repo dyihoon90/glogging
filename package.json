@@ -1,0 +1,32 @@
+{
+  "name": "glogging",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest -i",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dyihoon90/glogging.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "jest": "^25.1.0",
+  "bugs": {
+    "url": "https://github.com/dyihoon90/glogging/issues"
+  },
+  "homepage": "https://github.com/dyihoon90/glogging#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^26.0.14",
+    "@typescript-eslint/eslint-plugin": "^3.8.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0",
+    "jest-html-reporters": "^2.0.1",
+    "ts-jest": "^26.4.0",
+    "typescript": "^4.0.3"
+  }
+}
