@@ -1,3 +1,3 @@
-export * from './LogUtil';
-export * from './AuditLogUtil';
+export * from './GLogger';
+export * from './GLogger.decorator';
 export * from './domainModels';
