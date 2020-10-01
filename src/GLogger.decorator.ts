@@ -1,9 +1,10 @@
 import { GLogger, IReq } from '.';
 
 /**
- * Class method decorator for logging requests in controller
- * @param method HTTP REST API method e.g. GET, POST
- * @param module module that logging is applied to e.g. Inbox
+ * Decorator function for logging transaction.
+ * @param loggerInstance a GLogger instance
+ * @param trxModule the transaction module e.g. DWP
+ * @param filename the filename. In Node.js can use __filename (if not webpacked)
  */
 export function LogTransaction(loggerInstance: GLogger,  trxModule: string, filename?: string) {
   return function <TResult>(_: any, methodName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
