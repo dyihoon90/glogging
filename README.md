@@ -4,11 +4,11 @@ This library builds on winston to provide a GLogger class to
 
 This library includes a few things:
 
-1. Express middlewares
+## 1. Express middlewares
 
 Express middleware for logging HTTP success and response
 
-2. Function decorators
+## 2. Function decorators
 
 Function decorators for logging transaction success and response
 
