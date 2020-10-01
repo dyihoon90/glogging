@@ -3,7 +3,21 @@ import { transports } from 'winston';
 import { GLogger, IExpressRequest, IExpressResponse, IReqRes, LoggingMode } from '../src';
 import { LogTransaction } from '../src';
 
-const response: IExpressResponse = {
+// EXAMPLE: INTIALIZING
+const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
+
+// EXAMPLE: ADDING NEW TRANSPORT
+// const transport = new transports.Console({
+//   format: format.combine(format.json())
+// });
+// logger.addLogTransport(transport)
+
+// EXAMPLE: LOGGING NORMALLY
+logger.info('info message 1');
+
+//EXAMPLE: SETUP
+//@ts-ignore
+const res: IExpressResponse = {
   statusCode: 200
 };
 
@@ -18,7 +32,8 @@ const token = {
   'singpass_nric.dwp.gov.sg': 'S2805507B'
 };
 
-const request: IExpressRequest = {
+//@ts-ignore
+const req: IExpressRequest = {
   reqStartTimeInEpochMillis: 1600939344000,
   ip: '123.111.222.333',
   headers: {
@@ -29,45 +44,47 @@ const request: IExpressRequest = {
   user: token
 };
 
-// logHttpSuccess('test', meta, 'TrxName1', token);
-// logHttpFailure(new Error('errror!'), { req: request, res: response }, 'TrxName1', token);
-const transport = new transports.Console({
-  format: format.combine(format.json())
-});
-const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
-// logger.info('info message 1');
-// logUtil.addTransport(transport);
+//#region EXAMPLE: LOGGING TRANSACTIONS
 
-// logger.logHttpSuccess('test', { req: request, res: response }, { trxModule: 'HRP', trxName: 'GET_LEAVE_DETAILS' });
-// auditLogger.logHttpFailure(new Error('errror!'), { req: request, res: response }, 'TrxName1', token);
-// auditLogger.logTransactionSuccess('test', { req: request, res: response }, 'trxName1', token, 1600939344000);
-// auditLogger.logTransactionFailure(
-//   new Error('errror!'),
-//   { req: request, res: response },
-//   'trxName2',
-//   token,
-//   1600939344000
-// );
+//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
+logger.logTransactionSuccess('this is a message',{req},{trxName: 'my transaction name',trxModule:"EXAMPLE_MODULE",filename:__filename},new Date().getTime())
 
-class TestClass {
-  @LogTransaction(logger, 'TEST_CLASS')
-  testSuccessTransaction({ req, res }: IReqRes): Promise<void> {
+
+//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
+const LogTransactionWithContext = LogTransaction(logger,'TRANSACTION_MODULE',__filename)
+
+class TransactionModule {
+  @LogTransactionWithContext
+  transactionSucceded({ req, res }: IReqRes): Promise<void> {
     return new Promise((resolve) => {
       setImmediate(resolve);
     });
   }
-  @LogTransaction(logger, 'TEST_CLASS')
-  async testFailureStringTransaction({ req, res }: IReqRes): Promise<void> {
+  @LogTransactionWithContext
+  async transactionFailedWithStringExample({ req, res }: IReqRes): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject('this is to test promise failure');
     await fakeAwaitFunction();
   }
-  @LogTransaction(logger, 'TEST_CLASS')
-  async testFailureErrorTransaction({ req, res }: IReqRes): Promise<void> {
+  @LogTransactionWithContext
+  async transactionFailedWithErrorExample({ req, res }: IReqRes): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
     await fakeAwaitFunction();
   }
+
+  @LogTransactionWithContext
+  async transactionFailedBadExample({ req, res }: IReqRes): Promise<void> {
+    try{
+      const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
+      await fakeAwaitFunction();
+    }catch(e){
+      // error swallowed without throwing
+    }
+
+  }
 }
 
-// new TestClass().testSuccessTransaction({ req: request, res: response });
-// new TestClass().testFailureStringTransaction({ req: request, res: response });
-new TestClass().testFailureErrorTransaction({ req: request, res: response });
+new TransactionModule().transactionSucceded({ req: req, res: res });
+new TransactionModule().transactionFailedWithStringExample({ req: req, res: res });
+new TransactionModule().transactionFailedWithErrorExample({ req: req, res: res });
+new TransactionModule().transactionFailedBadExample({ req: req, res: res });
+//#endregion
