@@ -4,6 +4,8 @@
 
 `npm i @dyihoon90/glogging`
 
+### Description
+
 This library builds on winston to provide a GLogger class to do logging for:
 
 1. requests in express
