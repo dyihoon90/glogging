@@ -14,7 +14,7 @@ Function decorators for logging transaction success and response
 
 The function being decorated MUST take a param of type IReq as its first parameter for the logger to work as intended
 
-See `src/domianModels/request.interface.ts` for the shape of IReq.
+See `src/domainModels/request.interface.ts` for the shape of IReq.
 
 Example of a function being decorated:
 
