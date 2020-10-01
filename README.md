@@ -1,6 +1,30 @@
 # Opiniated audit logger for Express HTTP & Transactions
 
-This library builds on winston to provide a GLogger class to
+This library builds on winston to provide a GLogger class to do logging for:
+
+1. requests in express
+2. logging for transactions to external systems in express
+
+There are 3 modes:
+
+### LOCAL
+- defaults to have transport for console.
+- Log level up to debug
+### DEV
+- Defaults to have transport for console.
+- Log level up to info
+### PRODUCTION
+- Defaults to have no transport at all. Use logger.addTransport to add a winston log transport
+- Log level up to info
+
+### EXAMPLES
+
+For example usage of this library, clone this library, do `npm i`, then:
+
+Run `npm run example` to see normal and transaction function decorator examples
+
+Run `npm run example-server` to create an example express server and see middleware examples
+
 
 This library includes a few things:
 
@@ -25,9 +49,3 @@ Example of a function being decorated:
     });
   }
 ```
-
-I have detailed example usage for this library.
-
-Run `npm run example` to see normal and transaction function decorator examples
-
-Run `npm run example-server` to create an example express server and see middleware examples
