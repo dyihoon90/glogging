@@ -1,5 +1,9 @@
 # Opiniated audit logger for Express HTTP & Transactions
 
+### Installation
+
+`npm i @dyihoon90/glogging`
+
 This library builds on winston to provide a GLogger class to do logging for:
 
 1. requests in express
