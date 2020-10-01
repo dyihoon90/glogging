@@ -1,14 +1,18 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import { IJwtPayload } from '.';
-export interface IExpressRequest extends Partial<Request> {
+export interface IExpressRequest extends express.Request {
   reqStartTimeInEpochMillis?: number;
   uuid?: string;
   user?: IJwtPayload;
 }
 
-export type IExpressResponse = Partial<Response>;
+export type IExpressResponse = express.Response;
 
 export interface IReqRes {
   req: IExpressRequest;
   res: IExpressResponse;
+}
+
+export interface IReq {
+  req: IExpressRequest;
 }

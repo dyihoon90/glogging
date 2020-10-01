@@ -10,9 +10,10 @@ import {
 import { DateTimeFormatter, Duration, Instant, ZonedDateTime } from '@js-joda/core';
 import { IJwtPayload } from './domainModels/jwt.interface';
 import { IHttpLog, ITransactionLog } from './domainModels/GLogger.interface';
-import { IExpressRequest, IReqRes } from './domainModels/request.interface';
+import { IExpressRequest, IReq, IReqRes } from './domainModels/request.interface';
 import { TransactionCategory, TransactionStatus } from './domainModels/transaction.interface';
 import _ from 'lodash';
+import { ErrorRequestHandler } from 'express';
 
 const DEFAULT_LOG_LABEL = 'log';
 
@@ -105,18 +106,18 @@ export class GLogger {
     return this;
   }
 
-  logHttpSuccess(message: string, { req, res }: IReqRes, { trxName, trxModule }: ITransactionMetadata): this {
+  logHttpSuccess(message: string, { req, res }: IReqRes, { trxName, trxModule, filename }: ITransactionMetadata): this {
     const logData: IHttpLog = {
-      resStatusCode: res.statusCode,
       trxCategory: TransactionCategory.HTTP,
       trxId: req.uuid || 'missing trxId in req',
       trxName,
       trxModule,
+      filename,
       timeTakenInMillis: req.reqStartTimeInEpochMillis
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
       trxStatus: TransactionStatus.SUCCESS,
-      metadata: { url: req.url, method: req.method, srcIp: getSourceIp(req) }
+      metadata: { url: req.url, method: req.method, srcIp: getSourceIp(req), statusCode: res.statusCode }
     };
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
@@ -125,13 +126,17 @@ export class GLogger {
     return this;
   }
 
-  logHttpFailure(error: Error | string, { req, res }: IReqRes, { trxName, trxModule }: ITransactionMetadata): this {
+  logHttpFailure(
+    error: ErrorRequestHandler,
+    { req, res }: IReqRes,
+    { trxName, trxModule, filename }: ITransactionMetadata
+  ): this {
     const logData: IHttpLog = {
-      resStatusCode: res.statusCode,
       trxCategory: TransactionCategory.HTTP,
       trxId: req.uuid || 'missing trxId in req',
       trxName,
       trxModule,
+      filename,
       timeTakenInMillis: req.reqStartTimeInEpochMillis
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
@@ -139,26 +144,22 @@ export class GLogger {
       metadata: {
         url: req.url,
         method: req.method,
-        srcIp: getSourceIp(req)
+        srcIp: getSourceIp(req),
+        statusCode: res.statusCode,
+        error
       }
     };
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    if (error instanceof Error) {
-      logData.metadata.error = { stack: error.stack, name: error.name };
-      this.warn(error.message, logData);
-    } else {
-      logData.metadata.error = error;
-      this.warn(error, logData);
-    }
+    this.warn(error.name, logData);
     return this;
   }
 
   logTransactionSuccess(
     message: string,
-    { req }: IReqRes,
-    { trxName, trxModule }: ITransactionMetadata,
+    { req }: IReq,
+    { trxName, trxModule, filename }: ITransactionMetadata,
     trxStartTimeInEpochMillis: number
   ): this {
     const logData: ITransactionLog = {
@@ -166,6 +167,7 @@ export class GLogger {
       trxId: req.uuid || 'missing trxId in req',
       trxName,
       trxModule,
+      filename,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
@@ -182,8 +184,8 @@ export class GLogger {
 
   logTransactionFailure(
     error: Error | string,
-    { req }: IReqRes,
-    { trxName, trxModule }: ITransactionMetadata,
+    { req }: IReq,
+    { trxName, trxModule, filename }: ITransactionMetadata,
     trxStartTimeInEpochMillis: number
   ): this {
     const logData: ITransactionLog = {
@@ -191,6 +193,7 @@ export class GLogger {
       trxId: req.uuid || 'missing trxId in req',
       trxName,
       trxModule,
+      filename,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
@@ -227,21 +230,38 @@ function getSourceIp(req: IExpressRequest): string {
   return (req.headers && req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'] : req.ip) as string;
 }
 
+/**
+ * Formatter for console logging in GLogging
+ * @param info
+ */
 const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): string => {
   const { level, message, timestamp, ...others } = info as ICombinedLog;
-  const baseLog = `[${timestamp as string}][${level.toUpperCase()}]`;
-  const { trxCategory, trxId, trxModule, trxName, trxStatus, timeTakenInMillis, userToken, metadata } = others;
-  if (trxCategory) {
-    return baseLog
-      .concat(
-        `[${trxCategory}][${trxModule}][${trxId}][${trxName}][${trxStatus}][${
-          timeTakenInMillis?.toString() || 'timeTakenInMillis not tracked'
-        }]`
-      )
-      .concat(`[${message}]`)
-      .concat(`[${JSON.stringify(userToken)}][${JSON.stringify(metadata)}]`);
+  const logString = `[${timestamp as string}][${level.toUpperCase()}]`;
+  const {
+    trxCategory,
+    trxId,
+    trxModule,
+    trxName,
+    trxStatus,
+    filename,
+    timeTakenInMillis,
+    userToken,
+    metadata
+  } = others;
+  if (!trxCategory) {
+    const basicLog = logString.concat(`[${message}]`);
+    return filename ? basicLog.concat(`[${filename}]`) : basicLog;
   }
-  return baseLog.concat(`[${message}]`);
+  const enrichedLog = logString
+    .concat(
+      `[${trxCategory}][${trxModule}][${trxId}][${trxName}][${trxStatus}][${
+        timeTakenInMillis?.toString() || 'time taken is not tracked'
+      }ms]`
+    )
+    .concat(`[${message}]\n`)
+    .concat(`[${userToken ? JSON.stringify(userToken, null, 4)?.replace(/\\n/g, '\n') : 'no user token'}]\n`)
+    .concat(`[${JSON.stringify(metadata, null, 4)?.replace(/\\n/g, '\n')}]\n`);
+  return filename ? enrichedLog.concat(`[${filename}]`) : enrichedLog;
 };
 
 const timestamp = winston.format((info: ILogInfo) => {

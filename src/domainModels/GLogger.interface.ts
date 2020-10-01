@@ -15,11 +15,10 @@ export interface IBaseLog {
   timeTakenInMillis?: number;
   metadata: Record<string, any>;
   trxModule: string;
+  filename?: string;
 }
 
-export interface IHttpLog extends IBaseLog {
-  resStatusCode?: number;
-}
+export type IHttpLog = IBaseLog;
 
 export type ITransactionLog = IBaseLog;
 
@@ -44,4 +43,5 @@ export enum LoggingMode {
 export interface ITransactionMetadata {
   trxName: string;
   trxModule: string;
+  filename?: string;
 }
