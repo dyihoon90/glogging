@@ -127,7 +127,7 @@ export class GLogger {
   }
 
   logHttpFailure(
-    error: ErrorRequestHandler,
+    error: ErrorRequestHandler | Error,
     { req, res }: IReqRes,
     { trxName, trxModule, filename }: ITransactionMetadata
   ): this {
@@ -145,10 +145,14 @@ export class GLogger {
         url: req.url,
         method: req.method,
         srcIp: getSourceIp(req),
-        statusCode: res.statusCode,
-        error
+        statusCode: res.statusCode
       }
     };
+    if (error instanceof Error) {
+      logData.metadata.error = { stack: error.stack, message: error.message, name: error.name };
+    } else {
+      logData.metadata.error = error;
+    }
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
