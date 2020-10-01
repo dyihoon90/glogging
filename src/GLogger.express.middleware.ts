@@ -38,8 +38,8 @@ export function responseErrorLoggerFactory(
   logger: GLogger,
   trxModule: string,
   trxName: string,
-  passErrorToNext = false,
-  filename?: string
+  filename?: string,
+  passErrorToNext = false
 ) {
   return (
     err: express.ErrorRequestHandler,
@@ -68,7 +68,7 @@ export function responseErrorLoggerFactory(
  * @param trxName the transaction name e.g. HRP
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
  */
-export function responseSuccessLoggerFactory(logger: GLogger, filename: string, trxModule: string, trxName: string) {
+export function responseSuccessLoggerFactory(logger: GLogger, trxModule: string, trxName: string, filename: string) {
   return (req: IExpressRequest, res: IExpressResponse, next: express.NextFunction): void => {
     try {
       res.on('finish', () => {

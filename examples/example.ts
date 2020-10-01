@@ -1,6 +1,6 @@
 import { format } from 'logform';
 import { transports } from 'winston';
-import { GLogger, IExpressRequest, IExpressResponse, IReqRes, LoggingMode } from '../src';
+import { GLogger, IReq, LoggingMode } from '../src';
 import { LogTransaction } from '../src';
 
 // EXAMPLE: INTIALIZING
@@ -55,24 +55,24 @@ const LogTransactionWithContext = LogTransaction(logger,'TRANSACTION_MODULE',__f
 
 class TransactionModule {
   @LogTransactionWithContext
-  transactionSucceded({ req, res }: IReqRes): Promise<void> {
+  public transactionSucceded({ req }: IReq): Promise<void> {
     return new Promise((resolve) => {
       setImmediate(resolve);
     });
   }
   @LogTransactionWithContext
-  async transactionFailedWithStringExample({ req, res }: IReqRes): Promise<void> {
+  public async transactionFailedWithStringExample({ req }: IReq): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject('this is to test promise failure');
     await fakeAwaitFunction();
   }
   @LogTransactionWithContext
-  async transactionFailedWithErrorExample({ req, res }: IReqRes): Promise<void> {
+  public async transactionFailedWithErrorExample({ req }: IReq): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
     await fakeAwaitFunction();
   }
 
   @LogTransactionWithContext
-  async transactionFailedBadExample({ req, res }: IReqRes): Promise<void> {
+  public async transactionFailedBadExample({ req }: IReq): Promise<void> {
     try{
       const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
       await fakeAwaitFunction();
@@ -83,8 +83,8 @@ class TransactionModule {
   }
 }
 
-new TransactionModule().transactionSucceded({ req: req, res: res });
-new TransactionModule().transactionFailedWithStringExample({ req: req, res: res });
-new TransactionModule().transactionFailedWithErrorExample({ req: req, res: res });
-new TransactionModule().transactionFailedBadExample({ req: req, res: res });
+new TransactionModule().transactionSucceded({ req: req });
+new TransactionModule().transactionFailedWithStringExample({ req: req });
+new TransactionModule().transactionFailedWithErrorExample({ req: req });
+new TransactionModule().transactionFailedBadExample({ req: req });
 //#endregion

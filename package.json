@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest -i",
     "build": "tsc",
-    "example": "ts-node examples/example.ts"
+    "example": "ts-node examples/example.ts",
+    "example-server": "ts-node examples/middleware.example.ts"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
+    "express": "^4.17.1",
     "jest": "^25.1.0",
     "jest-html-reporters": "^2.0.1",
     "prettier": "^2.0.4",
