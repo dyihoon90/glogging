@@ -1,4 +1,4 @@
-import { GLogger, IReq } from '.';
+import { GLogger, IExpressRequest } from '.';
 
 /**
  * Decorator function for logging transaction.
@@ -10,14 +10,14 @@ export function LogTransaction(loggerInstance: GLogger,  trxModule: string, file
   return function <TResult>(_: any, methodName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
     // value is the class method being wrapped by this decorator
     const originalMethod = descriptor.value;
-    descriptor.value = async function (req: IReq, ...args: []) {
+    descriptor.value = async function (req: IExpressRequest, ...args: []) {
       const startTime = new Date().getTime();
       try {
         const result = await originalMethod.apply(this, [req, ...args]);
-        loggerInstance.logTransactionSuccess(`Transaction: ${methodName} success`, req, { filename, trxName: methodName, trxModule }, startTime);
+        loggerInstance.logTransactionSuccess(`Transaction: ${methodName} success`, {req}, { filename, trxName: methodName, trxModule }, startTime);
         return result as TResult;
       } catch (e) {
-        loggerInstance.logTransactionFailure(e, req, { filename, trxName: methodName, trxModule }, startTime);
+        loggerInstance.logTransactionFailure(e, {req}, { filename, trxName: methodName, trxModule }, startTime);
         throw e;
       }
     };
