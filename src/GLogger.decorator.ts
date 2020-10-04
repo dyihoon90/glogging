@@ -1,26 +1,41 @@
 import { GLogger, IExpressRequest } from '.';
 
 /**
- * Decorator function for logging transaction.
+ * Class decorator function that adds logging to all class methods
+ * All class methods must take in an IExpressRequest (an extended express.Request) object as first parameter
+ * This modifies all class methods except the constructor method, adding logging on successful complete or on error
  * @param loggerInstance a GLogger instance
- * @param trxModule the transaction module e.g. DWP
+ * @param trxModule the transaction module e.g. INBOX_CLAIM
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
  */
-export function LogTransaction(loggerInstance: GLogger,  trxModule: string, filename?: string) {
-  return function <TResult>(_: any, methodName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
-    // value is the class method being wrapped by this decorator
-    const originalMethod = descriptor.value;
-    descriptor.value = async function (req: IExpressRequest, ...args: []) {
-      const startTime = new Date().getTime();
-      try {
-        const result = await originalMethod.apply(this, [req, ...args]);
-        loggerInstance.logTransactionSuccess(`Transaction: ${methodName} success`, {req}, { filename, trxName: methodName, trxModule }, startTime);
-        return result as TResult;
-      } catch (e) {
-        loggerInstance.logTransactionFailure(e, {req}, { filename, trxName: methodName, trxModule }, startTime);
-        throw e;
+export function LogTransaction(loggerInstance: GLogger, trxModule: string, filename?: string) {
+  return function <TResult>(target: Function): void {
+    for (const propertyName of Object.getOwnPropertyNames(target.prototype)) {
+      const descriptor = Object.getOwnPropertyDescriptor(target.prototype, propertyName)!;
+      const isMethod = descriptor.value instanceof Function;
+      if (!isMethod || propertyName === 'constructor') {
+        continue;
       }
-    };
-    return descriptor;
+
+      const originalMethod = descriptor.value;
+      descriptor.value = async (req: IExpressRequest, ...args: any[]) => {
+        const startTime = new Date().getTime();
+        try {
+          const result = await originalMethod(req, ...args);
+          loggerInstance.logTransactionSuccess(
+            `Transaction: ${propertyName} success`,
+            { req },
+            { filename, trxName: propertyName, trxModule },
+            startTime
+          );
+          return result as TResult;
+        } catch (e) {
+          loggerInstance.logTransactionFailure(e, { req }, { filename, trxName: propertyName, trxModule }, startTime);
+          throw e;
+        }
+      };
+
+      Object.defineProperty(target.prototype, propertyName, descriptor);
+    }
   };
 }
