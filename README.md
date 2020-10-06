@@ -38,18 +38,24 @@ This library includes a few things:
 
 Express middleware for logging HTTP success and response
 
-## 2. Function decorators
+## 2. Class decorator
 
-Function decorators for logging transaction success and response
+Class decorator for logging success/failure of transactions to external systems, such as other APIs or DB calls.
 
-The function being decorated MUST take a param of type IReq as its first parameter for the logger to work as intended
+With this decorator, **all** class methods will be decorated.
 
-See `src/domainModels/request.interface.ts` for the shape of IReq.
+All class methods, other than the `constructor`, **MUST** take a param of type IExpressRequest as its first parameter.
+
+This IExpressRequest will allow the logger to receive the context required to log the HTTP request this transaction is tied to.
+
+See `domainModels/request.interface` for the shape of IExpressRequest.
 
 Example of a function being decorated:
 
 ```typescript
-  public  transactionSucceded({ req }: IReq): Promise<void> {
+@LogTransaction(logger,'TRANSACTION_MODULE_1','a.filename.ts')
+class ATransationClass
+  public  transactionSucceded(request: IExpressRequest): Promise<void> {
     return new Promise((resolve) => {
       setImmediate(resolve);
     });
