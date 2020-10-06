@@ -5,5 +5,5 @@ export interface IJwtPayload {
   jti: string;
   exp: number;
   iat: number;
-  [x: string]: string | number | undefined;
+  [x: string]: unknown;
 }
