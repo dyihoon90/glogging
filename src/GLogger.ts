@@ -269,6 +269,6 @@ const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): strin
 };
 
 const timestamp = winston.format((info: ILogInfo) => {
-  info.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+  info.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   return info;
 });
