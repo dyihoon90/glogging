@@ -1,6 +1,6 @@
 import { format } from 'logform';
 import { transports } from 'winston';
-import { GLogger, IReq, LoggingMode } from '../src';
+import { GLogger, IExpressRequest, IReq, LoggingMode } from '../src';
 import { LogTransaction } from '../src';
 
 // EXAMPLE: INTIALIZING
@@ -13,8 +13,13 @@ const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 // logger.addLogTransport(transport)
 
 // EXAMPLE: LOGGING NORMALLY
-logger.info('info message 1');
-
+divider()
+logger.info('info message 1',{myData: 'okay'});
+divider()
+// logger.warn('error message 1', new Error('more error messages'), {myOtherValues:'value1'});
+divider()
+// logger.error('error message 1', new Error('more error messages'),{myMetadata:"this is metadata"});
+divider()
 //EXAMPLE: SETUP
 //@ts-ignore
 const res: IExpressResponse = {
@@ -22,7 +27,7 @@ const res: IExpressResponse = {
 };
 
 const token = {
-  sub: 'tes_user@t.g.sg',
+  sub: 'test_user@t.g.sg',
   jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
   iat: 1600665219,
   exp: 1608441219,
@@ -47,32 +52,33 @@ const req: IExpressRequest = {
 //#region EXAMPLE: LOGGING TRANSACTIONS
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
-logger.logTransactionSuccess('this is a message',{req},{trxName: 'my transaction name',trxModule:"EXAMPLE_MODULE",filename:__filename},new Date().getTime())
-
+divider()
+// logger.logTransactionSuccess('this is a message',{req},{trxName: 'my transaction name',trxModule:"EXAMPLE_MODULE",filename:__filename},new Date().getTime())
+divider()
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
-const LogTransactionWithContext = LogTransaction(logger,'TRANSACTION_MODULE',__filename)
-
+@LogTransaction(logger,'TRANSACTION_MODULE',__filename)
 class TransactionModule {
-  @LogTransactionWithContext
-  public transactionSucceded({ req }: IReq): Promise<void> {
+  public transactionSucceded(request: IExpressRequest): Promise<void> {
     return new Promise((resolve) => {
       setImmediate(resolve);
     });
   }
-  @LogTransactionWithContext
-  public async transactionFailedWithStringExample({ req }: IReq): Promise<void> {
+  public async transactionFailedWithStringExample(request: IExpressRequest): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject('this is to test promise failure');
     await fakeAwaitFunction();
   }
-  @LogTransactionWithContext
-  public async transactionFailedWithErrorExample({ req }: IReq): Promise<void> {
+  public async transactionFailedWithErrorExample(request: IExpressRequest): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
     await fakeAwaitFunction();
   }
 
-  @LogTransactionWithContext
-  public async transactionFailedBadExample({ req }: IReq): Promise<void> {
+  /**
+   * Bad example of transaction service swallowing the error when it shouldn't
+   *
+   * @param request
+   */
+  public async transactionFailedBadExample(request: IExpressRequest): Promise<void> {
     try{
       const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
       await fakeAwaitFunction();
@@ -82,9 +88,14 @@ class TransactionModule {
 
   }
 }
-
-new TransactionModule().transactionSucceded({ req: req });
-new TransactionModule().transactionFailedWithStringExample({ req: req });
-new TransactionModule().transactionFailedWithErrorExample({ req: req });
-new TransactionModule().transactionFailedBadExample({ req: req });
+divider()
+// new TransactionModule().transactionSucceded(req);
+// new TransactionModule().transactionFailedWithStringExample(req);
+new TransactionModule().transactionFailedWithErrorExample(req);
+// new TransactionModule().transactionFailedBadExample(req);
+divider()
 //#endregion
+
+function divider(){
+  console.log('--------------------------------------------------------------------------------------------------------')
+}

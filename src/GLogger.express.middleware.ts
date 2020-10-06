@@ -41,12 +41,7 @@ export function responseErrorLoggerFactory(
   filename?: string,
   passErrorToNext = false
 ) {
-  return (
-    err: express.ErrorRequestHandler,
-    req: IExpressRequest,
-    res: IExpressResponse,
-    next: express.NextFunction
-  ): void => {
+  return (err: Error, req: IExpressRequest, res: IExpressResponse, next: express.NextFunction): void => {
     try {
       logger.logHttpFailure(err, { req, res }, { filename, trxModule, trxName });
       if (passErrorToNext) {

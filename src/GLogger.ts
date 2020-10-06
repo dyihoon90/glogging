@@ -13,7 +13,6 @@ import { IHttpLog, ITransactionLog } from './domainModels/GLogger.interface';
 import { IExpressRequest, IReq, IReqRes } from './domainModels/request.interface';
 import { TransactionCategory, TransactionStatus } from './domainModels/transaction.interface';
 import _ from 'lodash';
-import { ErrorRequestHandler } from 'express';
 
 const DEFAULT_LOG_LABEL = 'log';
 
@@ -72,37 +71,70 @@ export class GLogger {
   }
 
   /**
-   * For troubleshooting. This level will not be logged in production environment
-   * @param message
+   * Creates a log object of level warn
+   * @example
+   * info('msg', {mydata: "data"})
+   * // creates the following log object
+   * {message: 'msg', level: 'debug', mydata: 'data'}
+   * @param metadata any additional relevant data, as a javascript object.
+   * If it contains a `message` property, the string is appended
+   * If it contains a `level` property, that is ignored
    */
-  debug(message: string): GLogger {
-    this.logger.debug(message);
+  debug(message: string, metadata?: Record<string, any>): GLogger {
+    this.logger.debug(message, metadata);
     return this;
   }
 
   /**
-   * Normally you should use to method to log simple, informational messages.
-   * If you need to troubleshoot objects, use debug method instead.
-   *
-   * @param message Message to log
+   * Creates a log object of level warn
+   * @example
+   * info('msg', {mydata: "data"})
+   * // creates the following log object
+   * {message: 'msg', level: 'info', mydata: 'data'}
+   * @param metadata any additional relevant data, as a javascript object.
+   * If it contains a `message` property, the string is appended
+   * If it contains a `level` property, that is ignored
    */
   info(message: string, metadata?: Record<string, any>): GLogger {
     this.logger.info(message, metadata);
     return this;
   }
 
-  warn(message?: string, metadata?: Record<string, any>): GLogger {
-    // const a = errorsFormat.transform(new Error('hi') as any);
-    if (message) {
-      this.logger.warn(message, metadata);
-    } else {
-      this.logger.warn(metadata);
+  /**
+   * Creates a log object of level warn
+   * @example
+   * warn('msg', new Error('error msg'), {mydata: "data"})
+   * // creates the following log object
+   * {message: 'msg', level: 'warn', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
+   * @param metadata any additional relevant data, as a javascript object.
+   * If it contains a `message` property, the string is appended
+   * If it contains a `level` property, that is ignored
+   */
+  warn(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
+    const metadataToLog = metadata ? { ...metadata } : {};
+    if (error) {
+      metadataToLog.metadata = { error: { stack: error.stack, message: error.message, name: error.name } };
     }
+    this.logger.warn(message, metadataToLog);
     return this;
   }
 
-  error(message: string, err?: Error, metadata?: Record<string, any>): GLogger {
-    this.logger.error(message, err, metadata);
+  /**
+   * Creates a log object of level error
+   * @example
+   * error('msg', new Error('error msg'), {mydata: "data"})
+   * // creates the following log object
+   * {message: 'msg', level: 'error', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
+   * @param metadata any additional relevant data, as a javascript object.
+   * If it contains a `message` property, the string is appended
+   * If it contains a `level` property, that is ignored
+   */
+  error(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
+    const metadataToLog = metadata ? { ...metadata } : {};
+    if (error) {
+      metadataToLog.metadata = { error: { stack: error.stack, message: error.message, name: error.name } };
+    }
+    this.logger.error(message, metadataToLog);
     return this;
   }
 
@@ -126,11 +158,7 @@ export class GLogger {
     return this;
   }
 
-  logHttpFailure(
-    error: ErrorRequestHandler | Error,
-    { req, res }: IReqRes,
-    { trxName, trxModule, filename }: ITransactionMetadata
-  ): this {
+  logHttpFailure(error: Error, { req, res }: IReqRes, { trxName, trxModule, filename }: ITransactionMetadata): this {
     const logData: IHttpLog = {
       trxCategory: TransactionCategory.HTTP,
       trxId: req.uuid || 'missing trxId in req',
@@ -148,15 +176,10 @@ export class GLogger {
         statusCode: res.statusCode
       }
     };
-    if (error instanceof Error) {
-      logData.metadata.error = { stack: error.stack, message: error.message, name: error.name };
-    } else {
-      logData.metadata.error = error;
-    }
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.warn(error.name, logData);
+    this.warn(error.name, error, logData);
     return this;
   }
 
@@ -187,7 +210,7 @@ export class GLogger {
   }
 
   logTransactionFailure(
-    error: Error | string,
+    error: Error,
     { req }: IReq,
     { trxName, trxModule, filename }: ITransactionMetadata,
     trxStartTimeInEpochMillis: number
@@ -208,13 +231,7 @@ export class GLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    if (error instanceof Error) {
-      logData.metadata.error = { stack: error.stack, name: error.name };
-      this.warn(error.message, logData);
-    } else {
-      logData.metadata.error = error;
-      this.warn(error, logData);
-    }
+    this.warn(error.message, error, logData);
     return this;
   }
 }
