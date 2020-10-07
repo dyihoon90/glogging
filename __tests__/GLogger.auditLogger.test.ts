@@ -29,7 +29,6 @@ describe('Test GLogger', () => {
       expect(mockFn).toHaveBeenCalledWith(
         expect.objectContaining({
           filename: 'file/name.ts',
-          label: 'log',
           level: 'info',
           message: 'msg',
           additionalInfo: { method: 'GET', srcIp: '999.999.999.999', statusCode: 200, url: 'test/test/aa' },
@@ -68,7 +67,6 @@ describe('Test GLogger', () => {
       expect(mockFn).toHaveBeenCalledWith(
         expect.objectContaining({
           filename: 'file/name.ts',
-          label: 'log',
           level: 'warn',
           message: 'Error',
           additionalInfo: {
@@ -111,7 +109,6 @@ describe('Test GLogger', () => {
       expect(mockFn).toHaveBeenCalledWith(
         expect.objectContaining({
           filename: 'file/name.ts',
-          label: 'log',
           level: 'info',
           message: 'msg',
           additionalInfo: { method: 'GET', url: 'test/test/aa' },
@@ -148,7 +145,6 @@ describe('Test GLogger', () => {
       expect(mockFn).toHaveBeenCalledWith(
         expect.objectContaining({
           filename: 'file/name.ts',
-          label: 'log',
           level: 'warn',
           message: 'error msg',
           additionalInfo: {

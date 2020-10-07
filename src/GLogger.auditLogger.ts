@@ -34,7 +34,7 @@ export class GLoggerAuditLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.glogger.info(message, logData);
+    this.glogger.info(message, { ...logData });
     return this;
   }
 
@@ -59,7 +59,7 @@ export class GLoggerAuditLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.glogger.warn(error.name, error, logData);
+    this.glogger.warn(error.name, error, { ...logData });
     return this;
   }
 
@@ -85,7 +85,7 @@ export class GLoggerAuditLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.glogger.info(message, logData);
+    this.glogger.info(message, { ...logData });
     return this;
   }
 
@@ -111,7 +111,7 @@ export class GLoggerAuditLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.glogger.warn(error.message, error, logData);
+    this.glogger.warn(error.message, error, { ...logData });
     return this;
   }
 }

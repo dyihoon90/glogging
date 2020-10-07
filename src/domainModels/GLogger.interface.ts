@@ -2,30 +2,39 @@ import { Logform } from 'winston';
 import { IJwtPayload } from './jwt.interface';
 import { TransactionCategory, TransactionStatus } from './transaction.interface';
 
-export interface ILogInfo extends Logform.TransformableInfo {
+/**
+ * IBasicLog is the shape of log data for simple logging, when glogger.info & glogger.warn are used
+ */
+export interface IBasicLogData {
   timestamp?: string;
+  additionalInfo?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
-export interface IBaseLog {
+/**
+ * IAuditLogData is the shape of logs for audit logging, such as for logging HTTP requests & transactions
+ * It is used in auditLogger
+ */
+export interface IAuditLogData {
+  timestamp?: string;
   trxCategory: TransactionCategory;
   userToken?: IJwtPayload;
   trxId: string;
   trxName: string;
   trxStatus: TransactionStatus;
   timeTakenInMillis?: number;
-  additionalInfo: Record<string, any>;
   trxModule: string;
   filename?: string;
+  additionalInfo?: Record<string, unknown>;
 }
 
-export type IHttpLog = IBaseLog;
+export type IHttpLog = IAuditLogData;
 
-export type ITransactionLog = IBaseLog;
+export type ITransactionLog = IAuditLogData;
 
-export interface ICombinedLog extends ILogInfo, IHttpLog, ITransactionLog {}
+export interface ICombinedLog extends Logform.TransformableInfo, IBasicLogData, IHttpLog, ITransactionLog {}
 
 export interface IConfigOptions {
-  logLabel?: string;
   loggingMode?: LoggingMode;
 }
 

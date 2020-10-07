@@ -1,20 +1,8 @@
-import winston, { Logger, format, transports } from 'winston';
+import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';
-import {
-  ICombinedLog,
-  IConfigOptions,
-  ILogInfo,
-  ITransactionMetadata,
-  LoggingMode
-} from './domainModels/GLogger.interface';
-import { DateTimeFormatter, Duration, Instant, ZonedDateTime } from '@js-joda/core';
-import { IJwtPayload } from './domainModels/jwt.interface';
-import { IHttpLog, ITransactionLog } from './domainModels/GLogger.interface';
-import { IExpressRequest, IReq, IReqRes } from './domainModels/request.interface';
-import { TransactionCategory, TransactionStatus } from './domainModels/transaction.interface';
+import { ICombinedLog, IConfigOptions, LoggingMode } from './domainModels/GLogger.interface';
+import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import _ from 'lodash';
-
-const DEFAULT_LOG_LABEL = 'log';
 
 /**
  * How to use this class:
@@ -24,12 +12,12 @@ const DEFAULT_LOG_LABEL = 'log';
 export class GLogger {
   private logger: Logger;
 
-  constructor({ logLabel, loggingMode }: IConfigOptions) {
+  constructor({ loggingMode }: IConfigOptions) {
     switch (loggingMode) {
       case LoggingMode.LOCAL:
         this.logger = winston.createLogger({
           level: 'debug',
-          format: format.combine(format.label({ label: logLabel || DEFAULT_LOG_LABEL }), timestamp())
+          format: format.combine(formatTimestamp())
         });
         this.logger.add(
           new transports.Console({
@@ -40,7 +28,7 @@ export class GLogger {
       case LoggingMode.DEV:
         this.logger = winston.createLogger({
           level: 'info',
-          format: format.combine(format.label({ label: logLabel || DEFAULT_LOG_LABEL }), timestamp())
+          format: format.combine(formatTimestamp())
         });
         this.logger.add(
           new transports.Console({
@@ -52,11 +40,7 @@ export class GLogger {
       default:
         this.logger = winston.createLogger({
           level: 'info',
-          format: format.combine(
-            format.label({ label: logLabel || DEFAULT_LOG_LABEL }),
-            timestamp(),
-            format.prettyPrint()
-          )
+          format: format.combine(formatTimestamp())
         });
     }
   }
@@ -80,7 +64,7 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  debug(message: string, data?: Record<string, any>): GLogger {
+  debug(message: string, data?: Record<string, unknown>): GLogger {
     this.logger.debug(message, data);
     return this;
   }
@@ -95,7 +79,7 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  info(message: string, data?: Record<string, any>): GLogger {
+  info(message: string, data?: Record<string, unknown>): GLogger {
     this.logger.info(message, data);
     return this;
   }
@@ -105,16 +89,16 @@ export class GLogger {
    * @example
    * warn('msg', new Error('error msg'), {mydata: "data"})
    * // creates the following log object
-   * {message: 'msg', level: 'warn', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
+   * {message: 'msg', level: 'warn', mydata: 'data', additionalInfo: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
    * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  warn(message: string, error?: Error, data?: Record<string, any>): GLogger {
+  warn(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
-        ...dataToLog.additionalInfo,
+        ...(dataToLog.additionalInfo as Record<string, unknown>),
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
@@ -127,16 +111,16 @@ export class GLogger {
    * @example
    * error('msg', new Error('error msg'), {mydata: "data"})
    * // creates the following log object
-   * {message: 'msg', level: 'error', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
+   * {message: 'msg', level: 'error', mydata: 'data', additionalInfo: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
    * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  error(message: string, error?: Error, data?: Record<string, any>): GLogger {
+  error(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
-        ...dataToLog.additionalInfo,
+        ...(dataToLog.additionalInfo as Record<string, unknown>),
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
@@ -147,28 +131,19 @@ export class GLogger {
 
 /**
  * Formatter for console logging in GLogging
+ * Depending on whether trxCategory is passed in, either logs out basicLog or enrichedLog
  * @param info
  */
-const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): string => {
-  const { level, message, timestamp, ...others } = info as ICombinedLog;
+function consoleMessageFormatter(info: winston.Logform.TransformableInfo): string {
+  const { level, message, timestamp, additionalInfo, filename, ...data } = info as ICombinedLog;
   const logString = `[${timestamp as string}][${level.toUpperCase()}]`;
-  const {
-    trxCategory,
-    trxId,
-    trxModule,
-    trxName,
-    trxStatus,
-    filename,
-    timeTakenInMillis,
-    userToken,
-    additionalInfo
-  } = others;
+  const { trxCategory, trxId, trxModule, trxName, trxStatus, timeTakenInMillis, userToken } = data;
   if (!trxCategory) {
     const basicLog = logString
       .concat(`[${message}]`)
+      .concat(`[${data ? formatWithLinebreakAndIndent(data) : 'no data'}]\n`)
       .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
-
-    return filename ? basicLog.concat(`[${filename}]`) : basicLog;
+    return basicLog;
   }
   const enrichedLog = logString
     .concat(
@@ -180,9 +155,9 @@ const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): strin
     .concat(`[${userToken ? formatWithLinebreakAndIndent(userToken) : 'no user token'}]\n`)
     .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
   return filename ? enrichedLog.concat(`[${filename}]`) : enrichedLog;
-};
+}
 
-const timestamp = winston.format((info: ILogInfo) => {
+const formatTimestamp = winston.format((info: Logform.TransformableInfo) => {
   info.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   return info;
 });
