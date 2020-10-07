@@ -76,12 +76,12 @@ export class GLogger {
    * info('msg', {mydata: "data"})
    * // creates the following log object
    * {message: 'msg', level: 'debug', mydata: 'data'}
-   * @param metadata any additional relevant data, as a javascript object.
+   * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  debug(message: string, metadata?: Record<string, any>): GLogger {
-    this.logger.debug(message, metadata);
+  debug(message: string, data?: Record<string, any>): GLogger {
+    this.logger.debug(message, data);
     return this;
   }
 
@@ -91,12 +91,12 @@ export class GLogger {
    * info('msg', {mydata: "data"})
    * // creates the following log object
    * {message: 'msg', level: 'info', mydata: 'data'}
-   * @param metadata any additional relevant data, as a javascript object.
+   * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  info(message: string, metadata?: Record<string, any>): GLogger {
-    this.logger.info(message, metadata);
+  info(message: string, data?: Record<string, any>): GLogger {
+    this.logger.info(message, data);
     return this;
   }
 
@@ -106,19 +106,19 @@ export class GLogger {
    * warn('msg', new Error('error msg'), {mydata: "data"})
    * // creates the following log object
    * {message: 'msg', level: 'warn', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
-   * @param metadata any additional relevant data, as a javascript object.
+   * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  warn(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
-    const metadataToLog = metadata ? { ...metadata } : {};
+  warn(message: string, error?: Error, data?: Record<string, any>): GLogger {
+    const dataToLog = data ? { ...data } : {};
     if (error) {
-      metadataToLog.metadata = {
-        ...metadataToLog.metadata,
+      dataToLog.additionalInfo = {
+        ...dataToLog.additionalInfo,
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
-    this.logger.warn(message, metadataToLog);
+    this.logger.warn(message, dataToLog);
     return this;
   }
 
@@ -128,19 +128,19 @@ export class GLogger {
    * error('msg', new Error('error msg'), {mydata: "data"})
    * // creates the following log object
    * {message: 'msg', level: 'error', mydata: 'data', metadata: {error: {stack: 'errorstack!',message:'error msg',name:'Error'}}}
-   * @param metadata any additional relevant data, as a javascript object.
+   * @param data any additional relevant data, as a javascript object.
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  error(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
-    const metadataToLog = metadata ? { ...metadata } : {};
+  error(message: string, error?: Error, data?: Record<string, any>): GLogger {
+    const dataToLog = data ? { ...data } : {};
     if (error) {
-      metadataToLog.metadata = {
-        ...metadataToLog.metadata,
+      dataToLog.additionalInfo = {
+        ...dataToLog.additionalInfo,
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
-    this.logger.error(message, metadataToLog);
+    this.logger.error(message, dataToLog);
     return this;
   }
 }
@@ -161,10 +161,13 @@ const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): strin
     filename,
     timeTakenInMillis,
     userToken,
-    metadata
+    additionalInfo
   } = others;
   if (!trxCategory) {
-    const basicLog = logString.concat(`[${message}]`);
+    const basicLog = logString
+      .concat(`[${message}]`)
+      .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
+
     return filename ? basicLog.concat(`[${filename}]`) : basicLog;
   }
   const enrichedLog = logString
@@ -174,8 +177,8 @@ const consoleMessageFormatter = (info: winston.Logform.TransformableInfo): strin
       }ms]`
     )
     .concat(`[${message}]\n`)
-    .concat(`[${userToken ? JSON.stringify(userToken, null, 4)?.replace(/\\n/g, '\n') : 'no user token'}]\n`)
-    .concat(`[${JSON.stringify(metadata, null, 4)?.replace(/\\n/g, '\n')}]\n`);
+    .concat(`[${userToken ? formatWithLinebreakAndIndent(userToken) : 'no user token'}]\n`)
+    .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
   return filename ? enrichedLog.concat(`[${filename}]`) : enrichedLog;
 };
 
@@ -183,3 +186,7 @@ const timestamp = winston.format((info: ILogInfo) => {
   info.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   return info;
 });
+
+function formatWithLinebreakAndIndent(obj: Record<string, unknown>): string {
+  return JSON.stringify(obj, null, 4)?.replace(/\\n/g, '\n');
+}

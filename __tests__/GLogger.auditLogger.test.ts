@@ -32,7 +32,7 @@ describe('Test GLogger', () => {
           label: 'log',
           level: 'info',
           message: 'msg',
-          metadata: { method: 'GET', srcIp: '999.999.999.999', statusCode: 200, url: 'test/test/aa' },
+          additionalInfo: { method: 'GET', srcIp: '999.999.999.999', statusCode: 200, url: 'test/test/aa' },
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'HTTP',
           trxId: 'uuid-123',
@@ -71,7 +71,7 @@ describe('Test GLogger', () => {
           label: 'log',
           level: 'warn',
           message: 'Error',
-          metadata: {
+          additionalInfo: {
             method: 'GET',
             srcIp: '999.999.999.999',
             statusCode: 400,
@@ -114,7 +114,7 @@ describe('Test GLogger', () => {
           label: 'log',
           level: 'info',
           message: 'msg',
-          metadata: { method: 'GET', url: 'test/test/aa' },
+          additionalInfo: { method: 'GET', url: 'test/test/aa' },
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
           trxId: 'uuid-123',
@@ -151,7 +151,7 @@ describe('Test GLogger', () => {
           label: 'log',
           level: 'warn',
           message: 'error msg',
-          metadata: {
+          additionalInfo: {
             method: 'GET',
             url: 'test/test/aa',
             error: { message: 'error msg', name: 'Error', stack: expect.any(String) }

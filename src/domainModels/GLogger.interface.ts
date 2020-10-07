@@ -13,7 +13,7 @@ export interface IBaseLog {
   trxName: string;
   trxStatus: TransactionStatus;
   timeTakenInMillis?: number;
-  metadata: Record<string, any>;
+  additionalInfo: Record<string, any>;
   trxModule: string;
   filename?: string;
 }

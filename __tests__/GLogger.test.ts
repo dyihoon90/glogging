@@ -37,7 +37,7 @@ describe('Test GLogger', () => {
             data1: 'value',
             level: 'warn',
             message: 'msg',
-            metadata: {
+            additionalInfo: {
               error: expect.objectContaining({ message: 'error msg', name: 'Error', stack: expect.any(String) })
             }
           })
@@ -68,7 +68,7 @@ describe('Test GLogger', () => {
             data1: 'value',
             level: 'error',
             message: 'msg',
-            metadata: {
+            additionalInfo: {
               error: expect.objectContaining({ message: 'error msg', name: 'Error', stack: expect.any(String) })
             }
           })
@@ -100,16 +100,4 @@ const token = {
   'appInstanceID.dwp.gov.sg': '1',
   'appID.dwp.gov.sg': 'oma-facade',
   'singpass_nric.dwp.gov.sg': 'S1234567A'
-};
-
-const req: Partial<IExpressRequest> = {
-  reqStartTimeInEpochMillis: 1600939344000,
-  ip: '123.111.222.333',
-  headers: {
-    'x-forwarded-for': '999.999.999.999'
-  },
-  url: 'test/test/aa',
-  uuid: 'uuid-123',
-  user: token,
-  method: 'GET'
 };

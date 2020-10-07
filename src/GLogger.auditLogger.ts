@@ -29,7 +29,7 @@ export class GLoggerAuditLogger {
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
       trxStatus: TransactionStatus.SUCCESS,
-      metadata: { url: req.url, method: req.method, srcIp: getSourceIp(req), statusCode: res.statusCode }
+      additionalInfo: { url: req.url, method: req.method, srcIp: getSourceIp(req), statusCode: res.statusCode }
     };
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
@@ -49,7 +49,7 @@ export class GLoggerAuditLogger {
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
       trxStatus: TransactionStatus.FAILURE,
-      metadata: {
+      additionalInfo: {
         url: req.url,
         method: req.method,
         srcIp: getSourceIp(req),
@@ -80,7 +80,7 @@ export class GLoggerAuditLogger {
         ZonedDateTime.now()
       ).toMillis(),
       trxStatus: TransactionStatus.SUCCESS,
-      metadata: { url: req.url, method: req.method }
+      additionalInfo: { url: req.url, method: req.method }
     };
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
@@ -106,7 +106,7 @@ export class GLoggerAuditLogger {
         ZonedDateTime.now()
       ).toMillis(),
       trxStatus: TransactionStatus.FAILURE,
-      metadata: { url: req.url, method: req.method }
+      additionalInfo: { url: req.url, method: req.method }
     };
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
