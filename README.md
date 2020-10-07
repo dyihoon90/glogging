@@ -53,7 +53,7 @@ This IExpressRequest will allow the logger to receive the context required to lo
 
 See `domainModels/request.interface` for the shape of IExpressRequest.
 
-Example of a function being decorated:
+Example of a class being decorated:
 
 ```typescript
 @LogTransaction(logger,'TRANSACTION_MODULE_1','a.filename.ts')
