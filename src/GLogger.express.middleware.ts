@@ -19,7 +19,9 @@ export function enhanceReqWithTransactionAndTime(
 ): void {
   try {
     req.reqStartTimeInEpochMillis = new Date().getTime();
-    req.uuid = uuidv4();
+    if (!req.uuid) {
+      req.uuid = uuidv4();
+    }
     next();
   } catch (e) {
     next(e);
