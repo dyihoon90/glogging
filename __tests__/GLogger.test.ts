@@ -1,6 +1,6 @@
 import { format } from 'logform';
 import { transports } from 'winston';
-import { GLogger, IExpressRequest, IExpressResponse, LoggingMode } from '../src';
+import { GLogger, IExpressRequest, LoggingMode } from '../dist';
 
 describe('Test GLogger', () => {
   let mockFn: () => any;

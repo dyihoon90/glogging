@@ -1,3 +1,6 @@
+![Release pipeline](https://github.com/dyihoon90/glogging/workflows/Release%20Package%20to%20NPM/badge.svg)
+![CI pipeline](https://github.com/dyihoon90/glogging/workflows/Run%20CI%20per%20push%20to%20Github%20repo/badge.svg)
+
 # Opiniated audit logger for Express HTTP & Transactions
 
 ### Installation
