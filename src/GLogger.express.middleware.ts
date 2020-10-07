@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { IExpressRequest, IExpressResponse } from './domainModels';
 import { GLogger } from './GLogger';
+import { GLoggerAuditLogger } from './GLogger.auditLogger';
 
 /**
  * Middleware which enhances the request with two properties:
@@ -43,7 +44,8 @@ export function responseErrorLoggerFactory(
 ) {
   return (err: Error, req: IExpressRequest, res: IExpressResponse, next: express.NextFunction): void => {
     try {
-      logger.logHttpFailure(err, { req, res }, { filename, trxModule, trxName });
+      const auditLoggerInstance = new GLoggerAuditLogger(logger);
+      auditLoggerInstance.logHttpFailure(err, { req, res }, { filename, trxModule, trxName });
       if (passErrorToNext) {
         next(err);
       } else {
@@ -68,7 +70,8 @@ export function responseSuccessLoggerFactory(logger: GLogger, trxModule: string,
     try {
       res.on('finish', () => {
         if (res.statusCode < 400) {
-          logger.logHttpSuccess('HTTP Call Success', { req, res }, { filename, trxModule, trxName });
+          const auditLoggerInstance = new GLoggerAuditLogger(logger);
+          auditLoggerInstance.logHttpSuccess('HTTP Call Success', { req, res }, { filename, trxModule, trxName });
         }
       });
 
