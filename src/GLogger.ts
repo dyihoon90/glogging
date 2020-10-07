@@ -71,7 +71,7 @@ export class GLogger {
   }
 
   /**
-   * Creates a log object of level warn
+   * Creates a log object of level debug
    * @example
    * info('msg', {mydata: "data"})
    * // creates the following log object
@@ -86,7 +86,7 @@ export class GLogger {
   }
 
   /**
-   * Creates a log object of level warn
+   * Creates a log object of level info
    * @example
    * info('msg', {mydata: "data"})
    * // creates the following log object
@@ -113,7 +113,10 @@ export class GLogger {
   warn(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
     const metadataToLog = metadata ? { ...metadata } : {};
     if (error) {
-      metadataToLog.metadata = { error: { stack: error.stack, message: error.message, name: error.name } };
+      metadataToLog.metadata = {
+        ...metadataToLog.metadata,
+        error: { stack: error.stack, message: error.message, name: error.name }
+      };
     }
     this.logger.warn(message, metadataToLog);
     return this;
@@ -132,7 +135,10 @@ export class GLogger {
   error(message: string, error?: Error, metadata?: Record<string, any>): GLogger {
     const metadataToLog = metadata ? { ...metadata } : {};
     if (error) {
-      metadataToLog.metadata = { error: { stack: error.stack, message: error.message, name: error.name } };
+      metadataToLog.metadata = {
+        ...metadataToLog.metadata,
+        error: { stack: error.stack, message: error.message, name: error.name }
+      };
     }
     this.logger.error(message, metadataToLog);
     return this;
