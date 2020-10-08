@@ -1,8 +1,8 @@
-import { enhanceReqWithTransactionAndTime, IExpressRequest, IExpressResponse, LoggingMode } from '../dist';
-import { GLogger } from '../dist/GLogger';
+import { enhanceReqWithTransactionAndTime, IExpressRequest, IExpressResponse, LoggingMode } from '../src';
+import { GLogger } from '../src/GLogger';
 const mockWarn = jest.fn();
 const mockInfo = jest.fn();
-jest.mock('../dist/GLogger', () => {
+jest.mock('../src/GLogger', () => {
   return {
     GLogger: jest.fn().mockImplementation(() => {
       return {

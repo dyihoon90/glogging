@@ -4,7 +4,6 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build-and-test": "npm run build && npm t",
     "test": "jest -i",
     "build": "tsc",
     "example": "ts-node examples/example.ts",

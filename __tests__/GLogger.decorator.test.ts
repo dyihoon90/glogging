@@ -1,9 +1,9 @@
-import { LoggingMode, LogTransaction, LogTransactionsForAllMethods, IExpressRequest } from '../dist';
-import { GLogger } from '../dist/GLogger';
+import { LoggingMode, LogTransaction, LogTransactionsForAllMethods, IExpressRequest } from '../src';
+import { GLogger } from '../src/GLogger';
 
 const mockWarn = jest.fn();
 const mockInfo = jest.fn();
-jest.mock('../dist/GLogger', () => {
+jest.mock('../src/GLogger', () => {
   return {
     GLogger: jest.fn().mockImplementation(() => {
       return { warn: mockWarn, info: mockInfo };
