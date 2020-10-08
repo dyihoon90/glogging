@@ -1,31 +1,25 @@
 import { format } from 'logform';
 import { transports } from 'winston';
-import { GLogger, IExpressRequest, IReq, LoggingMode } from '../src';
+import { GLogger, GLoggerAuditLogger, IExpressRequest, IReq, LoggingMode, LogTransactionsForAllMethods } from '../src';
 import { LogTransaction } from '../src';
 
 // EXAMPLE: INTIALIZING
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 
 // EXAMPLE: ADDING NEW TRANSPORT
-// const transport = new transports.Console({
-//   format: format.combine(format.json())
-// });
-// logger.addLogTransport(transport)
+const transport = new transports.Console({
+  format: format.combine(format.json())
+});
+// logger.addLogTransport(transport);
 
-// EXAMPLE: LOGGING NORMALLY
-divider()
-logger.info('info message 1',{myData: 'okay'});
-divider()
-// logger.warn('error message 1', new Error('more error messages'), {myOtherValues:'value1'});
-divider()
-// logger.error('error message 1', new Error('more error messages'),{myMetadata:"this is metadata"});
-divider()
+// EXAMPLE: BASIC LOG
+divider('EXAMPLE: BASIC LOG');
+logger.info('info message 1', { myData: 'okay' });
+logger.warn('error message 1', new Error('more error messages'), { myOtherValues: 'value1' });
+logger.error('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
+divider('EXAMPLE: BASIC LOG END');
+
 //EXAMPLE: SETUP
-//@ts-ignore
-const res: IExpressResponse = {
-  statusCode: 200
-};
-
 const token = {
   sub: 'test_user@t.g.sg',
   jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
@@ -37,8 +31,7 @@ const token = {
   'singpass_nric.dwp.gov.sg': 'S1234567A'
 };
 
-//@ts-ignore
-const req: IExpressRequest = {
+const req: Partial<IExpressRequest> = {
   reqStartTimeInEpochMillis: 1600939344000,
   ip: '123.111.222.333',
   headers: {
@@ -52,19 +45,25 @@ const req: IExpressRequest = {
 //#region EXAMPLE: LOGGING TRANSACTIONS
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
-divider()
-// logger.logTransactionSuccess('this is a message',{req},{trxName: 'my transaction name',trxModule:"EXAMPLE_MODULE",filename:__filename},new Date().getTime())
-divider()
+divider('LOGGING TRANSACTIONS');
+new GLoggerAuditLogger(logger).logTransactionSuccess(
+  'this is a message',
+  { req: req as IExpressRequest },
+  { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
+  new Date().getTime()
+);
+divider('LOGGING TRANSACTIONS END');
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
-@LogTransaction(logger,'TRANSACTION_MODULE',__filename)
+@LogTransactionsForAllMethods(logger, 'TRANSACTION_MODULE', __filename)
 class TransactionModule {
-  public transactionSucceded(request: IExpressRequest): Promise<void> {
-    return new Promise((resolve) => {
-      setImmediate(resolve);
-    });
+  public asyncTransactionSucceded(request: IExpressRequest, str: string): Promise<string> {
+    return Promise.resolve(str);
   }
-  public async transactionFailedWithStringExample(request: IExpressRequest): Promise<void> {
+  public syncTransactionSucceded(request: IExpressRequest, str: string): string {
+    return str;
+  }
+  public async asyncTransactionFailedWithStringExample(request: IExpressRequest): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject('this is to test promise failure');
     await fakeAwaitFunction();
   }
@@ -78,24 +77,59 @@ class TransactionModule {
    *
    * @param request
    */
-  public async transactionFailedBadExample(request: IExpressRequest): Promise<void> {
-    try{
+  public async asyncTransactionFailedBadExample(request: IExpressRequest): Promise<void> {
+    try {
       const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
       await fakeAwaitFunction();
-    }catch(e){
+    } catch (e) {
       // error swallowed without throwing
     }
-
   }
 }
-divider()
-// new TransactionModule().transactionSucceded(req);
-// new TransactionModule().transactionFailedWithStringExample(req);
-new TransactionModule().transactionFailedWithErrorExample(req);
-// new TransactionModule().transactionFailedBadExample(req);
-divider()
+divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR');
+new TransactionModule().asyncTransactionSucceded(req as IExpressRequest, 'success!');
+new TransactionModule().syncTransactionSucceded(req as IExpressRequest, 'success!');
+new TransactionModule().asyncTransactionFailedWithStringExample(req as IExpressRequest);
+new TransactionModule().asyncTransactionFailedBadExample(req as IExpressRequest);
+divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR END');
 //#endregion
 
-function divider(){
-  console.log('--------------------------------------------------------------------------------------------------------')
+function aSyncSuccessTransaction(request: IExpressRequest, str: string): string {
+  return str;
+}
+
+const aSyncSuccessArrowTransaction = (request: IExpressRequest, str: string): string => {
+  return str;
+};
+
+function aSyncFailTransaction(request: IExpressRequest, str: string): string {
+  throw new Error(str);
+}
+
+divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR');
+LogTransaction(logger, 'Test Transaction Module', __filename)(
+  aSyncSuccessTransaction,
+  req as IExpressRequest,
+  'resolved successfully'
+);
+LogTransaction(logger, 'Test Transaction Module', __filename)(
+  aSyncSuccessArrowTransaction,
+  req as IExpressRequest,
+  'resolved successfully'
+);
+try {
+  LogTransaction(logger, 'Test Transaction Module', __filename)(
+    aSyncFailTransaction,
+    req as IExpressRequest,
+    'met an error'
+  );
+} catch (e) {}
+divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR END');
+
+function divider(section?: string) {
+  console.log(
+    `\n--------------------------------------------------------${
+      section ? section : ''
+    }--------------------------------------------------------\n`
+  );
 }
