@@ -90,7 +90,7 @@ export class GLoggerAuditLogger {
   }
 
   logTransactionFailure(
-    error: Error,
+    error: Error | string | unknown,
     { req }: IReq,
     { trxName, trxModule, filename }: ITransactionMetadata,
     trxStartTimeInEpochMillis: number
@@ -111,7 +111,15 @@ export class GLoggerAuditLogger {
     if (req.user) {
       logData.userToken = redactUserToken(req.user);
     }
-    this.glogger.warn(error.message, error, { ...logData });
+    // Promise.reject() by convention should reject with Error.
+    // but in scenarios where it rejects with other things, we still try our best to log the object
+    if (error instanceof Error) {
+      this.glogger.warn(error.message, error, { ...logData });
+    } else if (typeof error === 'string') {
+      this.glogger.warn(error, undefined, { ...logData });
+    } else {
+      this.glogger.warn('error', undefined, { ...logData, error });
+    }
     return this;
   }
 }
