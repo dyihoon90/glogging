@@ -21,8 +21,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm t",
-      "pre-push": "npm t"
+      "pre-commit": "npm run build && npm t",
+      "pre-push": "npm run build && npm t"
     }
   },
   "homepage": "https://github.com/dyihoon90/glogging#readme",
