@@ -1,4 +1,4 @@
-import { LoggingMode, LogTransaction, LogTransactionsForAllMethods, IExpressRequest } from '../src';
+import { LoggingMode, LoggedTransaction, LoggedTransactionClass, IExpressRequest } from '../src';
 import { GLogger } from '../src/GLogger';
 
 const mockWarn = jest.fn();
@@ -12,7 +12,7 @@ jest.mock('../src/GLogger', () => {
 });
 
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
-@LogTransactionsForAllMethods(logger, 'TestModule', __filename)
+@LoggedTransactionClass(logger, 'TestModule', __filename)
 class TestClass {
   syncSuccessMethod(str: string): string {
     return str;
@@ -78,7 +78,7 @@ describe('LogTransactionsForAllMethods', () => {
   });
 
   describe('When a sync method that throws error is decorated', () => {
-    it('should call logger.info', (done) => {
+    it('should call logger.warn', (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
       try {
@@ -185,7 +185,7 @@ describe('LogTransation', () => {
     it('should remain a synchronous function', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      const result = LogTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
+      const result = LoggedTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
 
       expect(result).toEqual('test');
     });
@@ -194,7 +194,7 @@ describe('LogTransation', () => {
     it('should remain an asynchronous function', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      const result = LogTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
+      const result = LoggedTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
 
       expect(result).toEqual('test');
     });
