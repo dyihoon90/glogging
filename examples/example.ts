@@ -1,7 +1,15 @@
 import { format } from 'winston';
 import { transports } from 'winston';
-import { GLogger, GLoggerAuditLogger, IExpressRequest, IReq, LoggingMode, LogTransactionsForAllMethods } from '../src';
-import { LogTransaction } from '../src';
+import {
+  GLogger,
+  GLoggerAuditLogger,
+  IExpressRequest,
+  IReq,
+  LoggingMode,
+  LoggedTransactionMethod,
+  LoggedTransactionClass
+} from '../src';
+import { LoggedTransaction } from '../src';
 
 // EXAMPLE: INTIALIZING
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
@@ -14,9 +22,9 @@ const transport = new transports.Console({
 
 // EXAMPLE: BASIC LOG
 divider('EXAMPLE: BASIC LOG');
-logger.info('info message 1', { myData: 'okay' });
-logger.warn('error message 1', new Error('more error messages'), { myOtherValues: 'value1' });
-logger.error('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
+// logger.info('info message 1', { myData: 'okay' });
+// logger.warn('error message 1', new Error('more error messages'), { myOtherValues: 'value1' });
+// logger.error('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
 divider('EXAMPLE: BASIC LOG END');
 
 //EXAMPLE: SETUP
@@ -46,26 +54,36 @@ const req: Partial<IExpressRequest> = {
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
 divider('LOGGING TRANSACTIONS');
-new GLoggerAuditLogger(logger).logTransactionSuccess(
-  'this is a message',
-  { req: req as IExpressRequest },
-  { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
-  new Date().getTime()
-);
+// new GLoggerAuditLogger(logger).logTransactionSuccess(
+//   'this is a message',
+//   { req: req as IExpressRequest },
+//   { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
+//   new Date().getTime()
+// );
 divider('LOGGING TRANSACTIONS END');
 
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
-@LogTransactionsForAllMethods(logger, 'TRANSACTION_MODULE', __filename)
+class OtherClass {
+  @LoggedTransactionMethod(logger, 'OtherClass', __filename)
+  public getSurname(request: IExpressRequest, str: string) {
+    return 'surname' + str;
+  }
+}
+
+@LoggedTransactionClass(logger, 'trxmodule', __filename)
 class TransactionModule {
+  public greeting = 'hi';
+  public otherClass = new OtherClass();
+
   /**
-   * This example method is to illustrate the `this` binding of all class methods are okay
+   * This example method is to illustrate the `this` binding for all scenarios work
    */
-  public async asyncTransactionSucceded(request: IExpressRequest, str: string): Promise<string> {
-    return await this.anotherClassMethod(request, str);
-  }
   public syncTransactionSucceded(request: IExpressRequest, str: string): string {
-    return str;
+    return this.greeting + this.otherClass.getSurname(request, str) + this.anotherMethod(request, str);
   }
+  public asyncTransactionSucceded = (request: IExpressRequest, str: string): Promise<string> => {
+    return Promise.resolve(str);
+  };
   public async asyncTransactionFailedWithStringExample(request: IExpressRequest): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject('this is to test promise failure');
     await fakeAwaitFunction();
@@ -75,8 +93,8 @@ class TransactionModule {
     await fakeAwaitFunction();
   }
 
-  public anotherClassMethod(request: IExpressRequest, str: string): Promise<string> {
-    return Promise.resolve(str);
+  public anotherMethod(request: IExpressRequest, str: string): string {
+    return str;
   }
 
   /**
@@ -94,8 +112,8 @@ class TransactionModule {
   }
 }
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR');
-new TransactionModule().asyncTransactionSucceded(req as IExpressRequest, 'success!');
 new TransactionModule().syncTransactionSucceded(req as IExpressRequest, 'success!');
+new TransactionModule().asyncTransactionSucceded(req as IExpressRequest, 'success!');
 new TransactionModule().asyncTransactionFailedWithStringExample(req as IExpressRequest);
 new TransactionModule().asyncTransactionFailedBadExample(req as IExpressRequest);
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR END');
@@ -114,18 +132,18 @@ function aSyncFailTransaction(request: IExpressRequest, str: string): string {
 }
 
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR');
-LogTransaction(logger, 'Test Transaction Module', __filename)(
+LoggedTransaction(logger, 'Test Transaction Module', __filename)(
   aSyncSuccessTransaction,
   req as IExpressRequest,
   'resolved successfully'
 );
-LogTransaction(logger, 'Test Transaction Module', __filename)(
+LoggedTransaction(logger, 'Test Transaction Module', __filename)(
   aSyncSuccessArrowTransaction,
   req as IExpressRequest,
   'resolved successfully'
 );
 try {
-  LogTransaction(logger, 'Test Transaction Module', __filename)(
+  LoggedTransaction(logger, 'Test Transaction Module', __filename)(
     aSyncFailTransaction,
     req as IExpressRequest,
     'met an error'
