@@ -23,7 +23,15 @@ export function LogTransactionsForAllMethods(logger: GLogger, trxModule: string,
 
       const originalMethod: (...args: unknown[]) => unknown = descriptor.value;
       descriptor.value = (req: IExpressRequest, ...args: unknown[]): any => {
-        return decorateFunctionWithLogs(logger, trxModule, originalMethod, propertyName, req, filename, ...args);
+        return decorateFunctionWithLogs(
+          logger,
+          trxModule,
+          originalMethod.bind(target.prototype),
+          propertyName,
+          req,
+          filename,
+          ...args
+        );
       };
 
       Object.defineProperty(target.prototype, propertyName, descriptor);

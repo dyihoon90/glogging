@@ -57,8 +57,11 @@ divider('LOGGING TRANSACTIONS END');
 //EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
 @LogTransactionsForAllMethods(logger, 'TRANSACTION_MODULE', __filename)
 class TransactionModule {
-  public asyncTransactionSucceded(request: IExpressRequest, str: string): Promise<string> {
-    return Promise.resolve(str);
+  /**
+   * This example method is to illustrate the `this` binding of all class methods are okay
+   */
+  public async asyncTransactionSucceded(request: IExpressRequest, str: string): Promise<string> {
+    return await this.anotherClassMethod(request, str);
   }
   public syncTransactionSucceded(request: IExpressRequest, str: string): string {
     return str;
@@ -70,6 +73,10 @@ class TransactionModule {
   public async transactionFailedWithErrorExample(request: IExpressRequest): Promise<void> {
     const fakeAwaitFunction = () => Promise.reject(new Error('this is to test promise failure'));
     await fakeAwaitFunction();
+  }
+
+  public anotherClassMethod(request: IExpressRequest, str: string): Promise<string> {
+    return Promise.resolve(str);
   }
 
   /**
