@@ -19,6 +19,12 @@
   "bugs": {
     "url": "https://github.com/dyihoon90/glogging/issues"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm t",
+      "pre-push": "npm t"
+    }
+  },
   "homepage": "https://github.com/dyihoon90/glogging#readme",
   "dependencies": {
     "@js-joda/core": "^3.2.0",
@@ -39,6 +45,7 @@
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
+    "husky": "^4.3.0",
     "jest": "^25.1.0",
     "jest-html-reporters": "^2.0.1",
     "prettier": "^2.0.4",
