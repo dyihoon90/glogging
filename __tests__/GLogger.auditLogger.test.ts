@@ -1,4 +1,4 @@
-import { format } from 'logform';
+import { format } from 'winston';
 import { transports } from 'winston';
 import { GLogger, IExpressRequest, IExpressResponse, LoggingMode } from '../src';
 import { GLoggerAuditLogger } from '../src/GLogger.auditLogger';
