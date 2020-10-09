@@ -185,11 +185,11 @@ function formatWithLinebreakAndIndent(obj: Record<string, unknown>): string {
 }
 
 function logVerbose(level: string, message: string, data?: Record<string, unknown>, error?: Error) {
-  console.log(`${level}() received message: ${message}`);
+  console.log(`[GLogger] ${level}() received message: ${message}`);
   if (data) {
-    console.log(`${level}() received data: ${formatWithLinebreakAndIndent(data)}`);
+    console.log(`[GLogger] ${level}() received data: ${formatWithLinebreakAndIndent(data)}`);
   }
   if (error) {
-    console.log(`${level}() received error: ${error.toString()}`);
+    console.log(`[GLogger] ${level}() received error: ${error.toString()}`);
   }
 }
