@@ -4,70 +4,40 @@ import {
   GLogger,
   GLoggerAuditLogger,
   IExpressRequest,
-  IReq,
   LoggingMode,
   LoggedTransactionMethod,
   LoggedTransactionClass
 } from '../src';
 import { LoggedTransaction } from '../src';
 
-// EXAMPLE: INTIALIZING
+// INTIALIZING
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 
-// EXAMPLE: ADDING NEW TRANSPORT
+//#region Setup
+// ADDING NEW TRANSPORT
 const transport = new transports.Console({
   format: format.combine(format.json())
 });
 // logger.addLogTransport(transport);
 
-// EXAMPLE: BASIC LOG
-divider('EXAMPLE: BASIC LOG');
-// logger.info('info message 1', { myData: 'okay' });
-// logger.warn('error message 1', new Error('more error messages'), { myOtherValues: 'value1' });
-// logger.error('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
-divider('EXAMPLE: BASIC LOG END');
+function divider(section?: string) {
+  console.log(
+    `\n--------------------------------------------------------${
+      section ? section : ''
+    }--------------------------------------------------------\n`
+  );
+}
 
-//EXAMPLE: SETUP
-const token = {
-  sub: 'test_user@t.g.sg',
-  jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-  iat: 1600665219,
-  exp: 1608441219,
-  iss: 'onemobileuserauthws.dwp.gov.sg',
-  'appInstanceID.dwp.gov.sg': '1',
-  'appID.dwp.gov.sg': 'oma-facade',
-  'singpass_nric.dwp.gov.sg': 'S1234567A'
+function aSyncSuccessTransaction(request: IExpressRequest, str: string): string {
+  return str;
+}
+
+const aSyncSuccessArrowTransaction = (request: IExpressRequest, str: string): string => {
+  return str;
 };
 
-const req: Partial<IExpressRequest> = {
-  reqStartTimeInEpochMillis: 1600939344000,
-  ip: '123.111.222.333',
-  headers: {
-    'x-forwarded-for': '999.999.999.999'
-  },
-  url: 'test/test/aa',
-  uuid: 'uuid-123',
-  user: token
-};
-
-//#region EXAMPLE: LOGGING TRANSACTIONS
-
-//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
-divider('LOGGING TRANSACTIONS');
-// new GLoggerAuditLogger(logger).logTransactionSuccess(
-//   'this is a message',
-//   { req: req as IExpressRequest },
-//   { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
-//   new Date().getTime()
-// );
-divider('LOGGING TRANSACTIONS END');
-
-//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
-class OtherClass {
-  @LoggedTransactionMethod(logger, 'OtherClass', __filename)
-  public getSurname(request: IExpressRequest, str: string) {
-    return 'surname' + str;
-  }
+function aSyncFailTransaction(request: IExpressRequest, str: string): string {
+  throw new Error(str);
 }
 
 @LoggedTransactionClass(logger, 'trxmodule', __filename)
@@ -111,24 +81,60 @@ class TransactionModule {
     }
   }
 }
+
+const token = {
+  sub: 'test_user@t.g.sg',
+  jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
+  iat: 1600665219,
+  exp: 1608441219,
+  iss: 'onemobileuserauthws.dwp.gov.sg',
+  'appInstanceID.dwp.gov.sg': '1',
+  'appID.dwp.gov.sg': 'oma-facade',
+  'singpass_nric.dwp.gov.sg': 'S1234567A'
+};
+
+const req: Partial<IExpressRequest> = {
+  reqStartTimeInEpochMillis: 1600939344000,
+  ip: '123.111.222.333',
+  headers: {
+    'x-forwarded-for': '999.999.999.999'
+  },
+  url: 'test/test/aa',
+  uuid: 'uuid-123',
+  user: token
+};
+//#endregion
+
+// EXAMPLE: BASIC LOG
+divider('EXAMPLE: BASIC LOG');
+logger.info('info message 1', { myData: 'okay' });
+logger.warn('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
+logger.error('error message 1', new Error('more error messages'), { myMetadata: 'this is metadata' });
+divider('EXAMPLE: BASIC LOG END');
+
+//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITHOUT DECORATOR
+divider('LOGGING TRANSACTIONS');
+new GLoggerAuditLogger(logger).logTransactionSuccess(
+  'this is a message',
+  { req: req as IExpressRequest },
+  { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
+  new Date().getTime()
+);
+divider('LOGGING TRANSACTIONS END');
+
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR');
 new TransactionModule().syncTransactionSucceded(req as IExpressRequest, 'success!');
 new TransactionModule().asyncTransactionSucceded(req as IExpressRequest, 'success!');
 new TransactionModule().asyncTransactionFailedWithStringExample(req as IExpressRequest);
 new TransactionModule().asyncTransactionFailedBadExample(req as IExpressRequest);
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR END');
-//#endregion
 
-function aSyncSuccessTransaction(request: IExpressRequest, str: string): string {
-  return str;
-}
-
-const aSyncSuccessArrowTransaction = (request: IExpressRequest, str: string): string => {
-  return str;
-};
-
-function aSyncFailTransaction(request: IExpressRequest, str: string): string {
-  throw new Error(str);
+//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
+class OtherClass {
+  @LoggedTransactionMethod(logger, 'OtherClass', __filename)
+  public getSurname(request: IExpressRequest, str: string) {
+    return 'surname' + str;
+  }
 }
 
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR');
@@ -150,11 +156,3 @@ try {
   );
 } catch (e) {}
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR END');
-
-function divider(section?: string) {
-  console.log(
-    `\n--------------------------------------------------------${
-      section ? section : ''
-    }--------------------------------------------------------\n`
-  );
-}
