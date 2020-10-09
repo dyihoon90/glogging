@@ -11,6 +11,7 @@ import _ from 'lodash';
  */
 export class GLogger {
   private logger: Logger;
+  private verboseMode = false;
 
   constructor({ loggingMode }: IConfigOptions) {
     switch (loggingMode) {
@@ -45,6 +46,10 @@ export class GLogger {
     }
   }
 
+  public toggleVerboseModeOn(): void {
+    this.verboseMode = true;
+  }
+
   /**
    * Add a winston transport to this LogUtil instance
    * @param transport a winston-transport Log Transport instance
@@ -65,6 +70,9 @@ export class GLogger {
    * If it contains a `level` property, that is ignored
    */
   debug(message: string, data?: Record<string, unknown>): GLogger {
+    if (this.verboseMode) {
+      logVerbose('debug', message, data);
+    }
     this.logger.debug(message, data);
     return this;
   }
@@ -80,6 +88,9 @@ export class GLogger {
    * If it contains a `level` property, that is ignored
    */
   info(message: string, data?: Record<string, unknown>): GLogger {
+    if (this.verboseMode) {
+      logVerbose('info', message, data);
+    }
     this.logger.info(message, data);
     return this;
   }
@@ -95,6 +106,10 @@ export class GLogger {
    * If it contains a `level` property, that is ignored
    */
   warn(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
+    if (this.verboseMode) {
+      logVerbose('warn', message, data, error);
+    }
+
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
@@ -117,6 +132,9 @@ export class GLogger {
    * If it contains a `level` property, that is ignored
    */
   error(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
+    if (this.verboseMode) {
+      logVerbose('error', message, data, error);
+    }
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
@@ -164,4 +182,14 @@ const formatTimestamp = winston.format((info: Logform.TransformableInfo) => {
 
 function formatWithLinebreakAndIndent(obj: Record<string, unknown>): string {
   return JSON.stringify(obj, null, 4)?.replace(/\\n/g, '\n');
+}
+
+function logVerbose(level: string, message: string, data?: Record<string, unknown>, error?: Error) {
+  console.log(`${level}() received message: ${message}`);
+  if (data) {
+    console.log(`${level}() received data: ${formatWithLinebreakAndIndent(data)}`);
+  }
+  if (error) {
+    console.log(`${level}() received error: ${error.toString()}`);
+  }
 }
