@@ -118,7 +118,7 @@ export class GLoggerAuditLogger {
     } else if (typeof error === 'string') {
       this.glogger.warn(error, undefined, { ...logData });
     } else {
-      this.glogger.warn('error', undefined, { ...logData, error });
+      this.glogger.warn('error', undefined, { ...logData, additionalInfo: { ...logData.additionalInfo, error } });
     }
     return this;
   }
