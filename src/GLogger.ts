@@ -69,7 +69,7 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  debug(message: string, data?: Record<string, unknown>): GLogger {
+  debug(message: string, data?: Record<string, any>): GLogger {
     if (this.verboseMode) {
       logVerbose('debug', message, data);
     }
@@ -87,7 +87,7 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  info(message: string, data?: Record<string, unknown>): GLogger {
+  info(message: string, data?: Record<string, any>): GLogger {
     if (this.verboseMode) {
       logVerbose('info', message, data);
     }
@@ -105,7 +105,7 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  warn(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
+  warn(message: string, error?: Error, data?: Record<string, any>): GLogger {
     if (this.verboseMode) {
       logVerbose('warn', message, data, error);
     }
@@ -113,7 +113,7 @@ export class GLogger {
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
-        ...(dataToLog.additionalInfo as Record<string, unknown>),
+        ...(dataToLog.additionalInfo as Record<string, any>),
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
@@ -131,14 +131,14 @@ export class GLogger {
    * If it contains a `message` property, the string is appended
    * If it contains a `level` property, that is ignored
    */
-  error(message: string, error?: Error, data?: Record<string, unknown>): GLogger {
+  error(message: string, error?: Error, data?: Record<string, any>): GLogger {
     if (this.verboseMode) {
       logVerbose('error', message, data, error);
     }
     const dataToLog = data ? { ...data } : {};
     if (error) {
       dataToLog.additionalInfo = {
-        ...(dataToLog.additionalInfo as Record<string, unknown>),
+        ...(dataToLog.additionalInfo as Record<string, any>),
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
@@ -180,11 +180,11 @@ const formatTimestamp = winston.format((info: Logform.TransformableInfo) => {
   return info;
 });
 
-function formatWithLinebreakAndIndent(obj: Record<string, unknown>): string {
+function formatWithLinebreakAndIndent(obj: Record<string, any>): string {
   return JSON.stringify(obj, null, 4)?.replace(/\\n/g, '\n');
 }
 
-function logVerbose(level: string, message: string, data?: Record<string, unknown>, error?: Error) {
+function logVerbose(level: string, message: string, data?: Record<string, any>, error?: Error) {
   console.log(`[GLogger] ${level}() received message: ${message}`);
   if (data) {
     console.log(`[GLogger] ${level}() received data: ${formatWithLinebreakAndIndent(data)}`);
