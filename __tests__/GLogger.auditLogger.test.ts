@@ -1,6 +1,6 @@
 import { format } from 'winston';
 import { transports } from 'winston';
-import { GLogger, IExpressRequest, IExpressResponse, LoggingMode } from '../src';
+import { GLogger, IExpressRequest, IExpressResponse, LoggingMode, TransactionCategory } from '../src';
 import { GLoggerAuditLogger } from '../src/GLogger.auditLogger';
 
 describe('Test GLogger', () => {
@@ -102,7 +102,12 @@ describe('Test GLogger', () => {
       auditLogger.logTransactionSuccess(
         'msg',
         { req: req as IExpressRequest },
-        { trxName: 'trans name', trxModule: 'trans module', filename: 'file/name.ts' },
+        {
+          trxCategory: TransactionCategory.TRANS,
+          trxName: 'trans name',
+          trxModule: 'trans module',
+          filename: 'file/name.ts'
+        },
         1600665219
       );
 
@@ -136,10 +141,15 @@ describe('Test GLogger', () => {
     test('should call transport in the correct format', () => {
       const auditLogger = new GLoggerAuditLogger(logger);
       auditLogger.logTransactionFailure(
-        new Error('error msg'),
         { req: req as IExpressRequest },
-        { trxName: 'trans name', trxModule: 'trans module', filename: 'file/name.ts' },
-        1600665219
+        {
+          trxCategory: TransactionCategory.TRANS,
+          trxName: 'trans name',
+          trxModule: 'trans module',
+          filename: 'file/name.ts'
+        },
+        1600665219,
+        new Error('error msg')
       );
 
       expect(mockFn).toHaveBeenCalledWith(

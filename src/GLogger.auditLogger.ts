@@ -10,7 +10,7 @@ import {
   IReq,
   ITransactionLog,
   IExpressRequest,
-  IJwtPayload
+  IHTTPTransactionMetadata
 } from '.';
 
 export class GLoggerAuditLogger {
@@ -18,7 +18,11 @@ export class GLoggerAuditLogger {
   constructor(glogger: GLogger) {
     this.glogger = glogger;
   }
-  logHttpSuccess(message: string, { req, res }: IReqRes, { trxName, trxModule, filename }: ITransactionMetadata): this {
+  logHttpSuccess(
+    message: string,
+    { req, res }: IReqRes,
+    { trxName, trxModule, filename }: IHTTPTransactionMetadata
+  ): this {
     const logData: IHttpLog = {
       trxCategory: TransactionCategory.HTTP,
       trxId: req.uuid || 'missing trxId in req',
@@ -36,7 +40,11 @@ export class GLoggerAuditLogger {
     return this;
   }
 
-  logHttpFailure(error: Error, { req, res }: IReqRes, { trxName, trxModule, filename }: ITransactionMetadata): this {
+  logHttpFailure(
+    error: Error,
+    { req, res }: IReqRes,
+    { trxName, trxModule, filename }: IHTTPTransactionMetadata
+  ): this {
     const logData: IHttpLog = {
       trxCategory: TransactionCategory.HTTP,
       trxId: req.uuid || 'missing trxId in req',
@@ -62,15 +70,15 @@ export class GLoggerAuditLogger {
   logTransactionSuccess(
     message: string,
     { req }: IReq,
-    { trxName, trxModule, filename }: ITransactionMetadata,
+    { trxCategory, trxName, trxModule, filename }: ITransactionMetadata,
     trxStartTimeInEpochMillis: number,
     result?: Record<string, any>
   ): this {
     const logData: ITransactionLog = {
-      trxCategory: TransactionCategory.TRANS,
+      trxCategory,
       trxId: req.uuid || 'missing trxId in req',
-      trxName,
       trxModule,
+      trxName,
       filename,
       userToken: req.user,
       timeTakenInMillis: Duration.between(
@@ -88,13 +96,13 @@ export class GLoggerAuditLogger {
   }
 
   logTransactionFailure(
-    error: Error | string | unknown,
     { req }: IReq,
-    { trxName, trxModule, filename }: ITransactionMetadata,
-    trxStartTimeInEpochMillis: number
+    { trxCategory, trxName, trxModule, filename }: ITransactionMetadata,
+    trxStartTimeInEpochMillis: number,
+    error: Error | string | unknown
   ): this {
     const logData: ITransactionLog = {
-      trxCategory: TransactionCategory.TRANS,
+      trxCategory,
       trxId: req.uuid || 'missing trxId in req',
       trxName,
       trxModule,

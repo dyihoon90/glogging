@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { GLogger, IExpressRequest, ITransactionLoggingOptions } from '.';
+import { IDecoratorMetadata } from './domainModels';
 import { GLoggerAuditLogger } from './GLogger.auditLogger';
 
 const DEFAULT_OPTIONS: ITransactionLoggingOptions = {
@@ -17,10 +18,9 @@ const DEFAULT_OPTIONS: ITransactionLoggingOptions = {
  * @param trxModule the transaction module e.g. INBOX_CLAIM
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
  */
-export function LoggedTransactionClass(
+export function LoggedClass(
   logger: GLogger,
-  trxModule: string,
-  filename?: string,
+  metadata: IDecoratorMetadata,
   options?: ITransactionLoggingOptions
 ): ClassDecorator {
   return function (target) {
@@ -34,12 +34,7 @@ export function LoggedTransactionClass(
         Object.defineProperty(
           target.prototype,
           propertyName,
-          LoggedTransactionMethod(
-            logger,
-            trxModule,
-            filename,
-            options
-          )(target, propertyName as string, descriptor) as any
+          LoggedMethod(logger, metadata, options)(target, propertyName as string, descriptor) as any
         );
       }
       // Object.defineProperty(target.prototype, propertyName, descriptor);
@@ -59,10 +54,9 @@ export function LoggedTransactionClass(
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
  * @returns a function that takes in boolean, whether to log the results of the function or not
  */
-export function LoggedTransactionMethod(
+export function LoggedMethod(
   logger: GLogger,
-  trxModule: string,
-  filename?: string,
+  metadata: IDecoratorMetadata,
   options?: ITransactionLoggingOptions
 ): MethodDecorator {
   return function (target: any, key, descriptor: PropertyDescriptor) {
@@ -80,16 +74,7 @@ export function LoggedTransactionMethod(
           return originalMethod;
         }
         descriptor.value = (req: IExpressRequest, ...args: unknown[]) => {
-          return decorateFunctionWithLogs(
-            logger,
-            trxModule,
-            originalMethod.bind(this),
-            key,
-            req,
-            filename,
-            options,
-            ...args
-          );
+          return decorateFunctionWithLogs(logger, metadata, originalMethod.bind(this), key, req, options, ...args);
         };
         const boundFn = descriptor.value;
         return boundFn;
@@ -111,95 +96,71 @@ export function LoggedTransactionMethod(
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
  * @param
  */
-export function LoggedTransaction(
-  logger: GLogger,
-  trxModule: string,
-  filename?: string,
-  options?: ITransactionLoggingOptions
-) {
+export function LoggedFunction(logger: GLogger, metadata: IDecoratorMetadata, options?: ITransactionLoggingOptions) {
   return function <U extends unknown[], V>(
     decoratedFunc: (req: IExpressRequest, ...args: U) => V,
     req: IExpressRequest,
     ...args: U
   ): Promise<unknown> | V {
-    return decorateFunctionWithLogs(
-      logger,
-      trxModule,
-      decoratedFunc,
-      decoratedFunc.name,
-      req,
-      filename,
-      options,
-      ...args
-    );
+    return decorateFunctionWithLogs(logger, metadata, decoratedFunc, decoratedFunc.name, req, options, ...args);
   };
 }
 
 function decorateFunctionWithLogs<U extends unknown[], V>(
   logger: GLogger,
-  trxModule: string,
+  { trxCategory, trxModule, filename }: IDecoratorMetadata,
   decoratedFunc: (req: IExpressRequest, ...args: U) => V,
   decoratedFuncName: string | symbol,
   req: IExpressRequest,
-  filename?: string,
   options?: ITransactionLoggingOptions,
   ...args: U
 ): Promise<unknown> | V {
   const startTime = new Date().getTime();
   const fnName = String(decoratedFuncName);
+  const auditLoggerInstance = new GLoggerAuditLogger(logger);
+  const logFailure = auditLoggerInstance.logTransactionFailure.bind(
+    auditLoggerInstance,
+    { req },
+    { trxCategory, filename, trxName: fnName, trxModule },
+    startTime
+  );
   try {
-    const auditLoggerInstance = new GLoggerAuditLogger(logger);
     const promiseOrValue = decoratedFunc(req, ...args);
     const opt = { ...DEFAULT_OPTIONS, ...options };
+    const logSuccess = auditLoggerInstance.logTransactionSuccess.bind(
+      auditLoggerInstance,
+      `Transaction: ${fnName} success`,
+      { req },
+      { trxCategory, filename, trxName: fnName, trxModule },
+      startTime
+    );
+
     // Scenario where decoratedFunc is asynchronous returning Promise
     if (promiseOrValue instanceof Promise) {
       return promiseOrValue
         .then((result) => {
           if (opt.toLogResults) {
-            auditLoggerInstance.logTransactionSuccess(
-              `Transaction: ${fnName} success`,
-              { req },
-              { filename, trxName: fnName, trxModule },
-              startTime,
-              result
-            );
+            logSuccess(result);
           } else {
-            auditLoggerInstance.logTransactionSuccess(
-              `Transaction: ${fnName} success`,
-              { req },
-              { filename, trxName: fnName, trxModule },
-              startTime
-            );
+            logSuccess();
           }
           return result as unknown;
         })
         .catch((e) => {
-          auditLoggerInstance.logTransactionFailure(e, { req }, { filename, trxName: fnName, trxModule }, startTime);
+          logFailure(e);
           throw e;
         });
     }
     // Scenario where decoratedFunc is synchronous returning value
     // Why separate? if we `await` sync decoratedFunc, return value gets casted into Promise, becoming async
     if (opt.toLogResults) {
-      auditLoggerInstance.logTransactionSuccess(
-        `Transaction: ${fnName} success`,
-        { req },
-        { filename, trxName: fnName, trxModule },
-        startTime,
-        promiseOrValue
-      );
+      logSuccess(promiseOrValue);
     } else {
-      auditLoggerInstance.logTransactionSuccess(
-        `Transaction: ${fnName} success`,
-        { req },
-        { filename, trxName: fnName, trxModule },
-        startTime
-      );
+      logSuccess();
     }
     return promiseOrValue;
   } catch (e) {
-    const auditLoggerInstance = new GLoggerAuditLogger(logger);
-    auditLoggerInstance.logTransactionFailure(e, { req }, { filename, trxName: fnName, trxModule }, startTime);
+    logFailure(e);
     throw e;
   }
 }

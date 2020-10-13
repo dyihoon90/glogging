@@ -48,9 +48,3 @@ export enum LoggingMode {
   DEV = 'DEV',
   PRODUCTION = 'PRODUCTION'
 }
-
-export interface ITransactionMetadata {
-  trxName: string;
-  trxModule: string;
-  filename?: string;
-}

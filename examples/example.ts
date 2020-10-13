@@ -5,10 +5,11 @@ import {
   GLoggerAuditLogger,
   IExpressRequest,
   LoggingMode,
-  LoggedTransactionMethod,
-  LoggedTransactionClass
+  LoggedClass,
+  LoggedMethod,
+  LoggedFunction,
+  TransactionCategory
 } from '../src';
-import { LoggedTransaction } from '../src';
 
 // INTIALIZING
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
@@ -40,12 +41,20 @@ function aSyncFailTransaction(request: IExpressRequest, str: string): string {
 }
 
 class OtherClass {
-  @LoggedTransactionMethod(logger, 'OtherClass', __filename, { toLogResults: true })
+  @LoggedMethod(
+    logger,
+    { trxCategory: TransactionCategory.TRANS, trxModule: 'OtherClass', filename: __filename },
+    { toLogResults: true }
+  )
   public getSurname(request: IExpressRequest, str: string) {
     return 'surname' + str;
   }
 }
-@LoggedTransactionClass(logger, 'trxmodule', __filename, { toLogResults: true })
+@LoggedClass(
+  logger,
+  { trxCategory: TransactionCategory.TRANS, trxModule: 'TransactionModule', filename: __filename },
+  { toLogResults: true }
+)
 class TransactionModule {
   public greeting = 'hi';
   public otherClass = new OtherClass();
@@ -122,7 +131,12 @@ divider('LOGGING TRANSACTIONS');
 new GLoggerAuditLogger(logger).logTransactionSuccess(
   'this is a message',
   { req: req as IExpressRequest },
-  { trxName: 'my transaction name', trxModule: 'EXAMPLE_MODULE', filename: __filename },
+  {
+    trxCategory: TransactionCategory.TRANS,
+    trxName: 'my transaction name',
+    trxModule: 'EXAMPLE_MODULE',
+    filename: __filename
+  },
   new Date().getTime()
 );
 divider('LOGGING TRANSACTIONS END');
@@ -136,21 +150,14 @@ new TransactionModule().asyncTransactionFailedBadExample(req as IExpressRequest)
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR END');
 
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR');
-LoggedTransaction(logger, 'Test Transaction Module', __filename, { toLogResults: true })(
-  aSyncSuccessTransaction,
-  req as IExpressRequest,
-  { myObj: { b: { c: 'S1234567A' } } }
+const LoggedFunctionWithContext = LoggedFunction(
+  logger,
+  { trxCategory: TransactionCategory.TRANS, trxModule: 'RawFunctions', filename: __filename },
+  { toLogResults: true }
 );
-LoggedTransaction(logger, 'Test Transaction Module', __filename, { toLogResults: true })(
-  aSyncSuccessArrowTransaction,
-  req as IExpressRequest,
-  'resolved successfully'
-);
+LoggedFunctionWithContext(aSyncSuccessTransaction, req as IExpressRequest, { myObj: { b: { c: 'S1234567A' } } });
+LoggedFunctionWithContext(aSyncSuccessArrowTransaction, req as IExpressRequest, 'resolved successfully');
 try {
-  LoggedTransaction(logger, 'Test Transaction Module', __filename)(
-    aSyncFailTransaction,
-    req as IExpressRequest,
-    'met an error'
-  );
+  LoggedFunctionWithContext(aSyncFailTransaction, req as IExpressRequest, 'met an error');
 } catch (e) {}
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR END');

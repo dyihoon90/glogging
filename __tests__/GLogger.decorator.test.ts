@@ -1,4 +1,4 @@
-import { LoggingMode, LoggedTransaction, LoggedTransactionClass, IExpressRequest } from '../src';
+import { LoggingMode, LoggedFunction, LoggedClass, IExpressRequest, TransactionCategory } from '../src';
 import { GLogger } from '../src/GLogger';
 
 const mockWarn = jest.fn();
@@ -12,7 +12,11 @@ jest.mock('../src/GLogger', () => {
 });
 
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
-@LoggedTransactionClass(logger, 'TestModule', __filename, { toLogResults: true })
+@LoggedClass(
+  logger,
+  { trxModule: 'TestModule', trxCategory: TransactionCategory.TRANS, filename: __filename },
+  { toLogResults: true }
+)
 class TestClass {
   syncSuccessMethod(str: string): string {
     return str;
@@ -40,7 +44,7 @@ class TestClass {
   }
 }
 
-describe('LoggedTransactionClass', () => {
+describe('LoggedClass', () => {
   afterEach(jest.resetAllMocks);
   describe('When a synchronous method is decorated', () => {
     it('should remain a synchronous method', () => {
@@ -180,13 +184,17 @@ describe('LoggedTransactionClass', () => {
   });
 });
 
-describe('LoggedTransaction', () => {
+describe('LoggedFunction', () => {
   afterEach(jest.resetAllMocks);
   describe('When decorating a synchronous function', () => {
     it('should remain a synchronous function', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      const result = LoggedTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
+      const result = LoggedFunction(logger, { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS })(
+        syncFunc,
+        {} as IExpressRequest,
+        'test'
+      );
 
       expect(result).toEqual('test');
     });
@@ -195,7 +203,11 @@ describe('LoggedTransaction', () => {
     it('should remain an asynchronous function', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      const result = LoggedTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
+      const result = LoggedFunction(logger, { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS })(
+        syncFunc,
+        {} as IExpressRequest,
+        'test'
+      );
 
       expect(result).toEqual('test');
     });
@@ -204,11 +216,11 @@ describe('LoggedTransaction', () => {
     it('should log the result', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      LoggedTransaction(logger, 'test_module', 'filename.ts', { toLogResults: true })(
-        syncFunc,
-        {} as IExpressRequest,
-        'test'
-      );
+      LoggedFunction(
+        logger,
+        { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+        { toLogResults: true }
+      )(syncFunc, {} as IExpressRequest, 'test');
 
       expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
         additionalInfo: { method: undefined, url: undefined, result: 'test' },
@@ -222,15 +234,15 @@ describe('LoggedTransaction', () => {
       });
     });
   });
-  describe('When decorating a function and toLogResult is set to false', () => {
+  describe('When decorating a function and toLogResult is set to the default false value', () => {
     it('should not log the result', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
-      LoggedTransaction(logger, 'test_module', 'filename.ts', { toLogResults: false })(
-        syncFunc,
-        {} as IExpressRequest,
-        'test'
-      );
+      LoggedFunction(logger, {
+        trxModule: 'test_module',
+        trxCategory: TransactionCategory.TRANS,
+        filename: __filename
+      })(syncFunc, {} as IExpressRequest, 'test');
 
       expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
         additionalInfo: { method: undefined, url: undefined },
