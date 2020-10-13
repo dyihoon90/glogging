@@ -25,15 +25,13 @@ export class GLoggerAuditLogger {
       trxName,
       trxModule,
       filename,
+      userToken: req.user,
       timeTakenInMillis: req.reqStartTimeInEpochMillis
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
       trxStatus: TransactionStatus.SUCCESS,
       additionalInfo: { url: req.url, method: req.method, srcIp: getSourceIp(req), statusCode: res.statusCode }
     };
-    if (req.user) {
-      logData.userToken = redactUserToken(req.user);
-    }
     this.glogger.info(message, { ...logData });
     return this;
   }
@@ -45,6 +43,7 @@ export class GLoggerAuditLogger {
       trxName,
       trxModule,
       filename,
+      userToken: req.user,
       timeTakenInMillis: req.reqStartTimeInEpochMillis
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
@@ -56,9 +55,6 @@ export class GLoggerAuditLogger {
         statusCode: res.statusCode
       }
     };
-    if (req.user) {
-      logData.userToken = redactUserToken(req.user);
-    }
     this.glogger.warn(error.name, error, { ...logData });
     return this;
   }
@@ -67,7 +63,8 @@ export class GLoggerAuditLogger {
     message: string,
     { req }: IReq,
     { trxName, trxModule, filename }: ITransactionMetadata,
-    trxStartTimeInEpochMillis: number
+    trxStartTimeInEpochMillis: number,
+    result?: Record<string, any>
   ): this {
     const logData: ITransactionLog = {
       trxCategory: TransactionCategory.TRANS,
@@ -75,6 +72,7 @@ export class GLoggerAuditLogger {
       trxName,
       trxModule,
       filename,
+      userToken: req.user,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
@@ -82,8 +80,8 @@ export class GLoggerAuditLogger {
       trxStatus: TransactionStatus.SUCCESS,
       additionalInfo: { url: req.url, method: req.method }
     };
-    if (req.user) {
-      logData.userToken = redactUserToken(req.user);
+    if (logData.additionalInfo && result) {
+      logData.additionalInfo.result = result;
     }
     this.glogger.info(message, { ...logData });
     return this;
@@ -101,6 +99,7 @@ export class GLoggerAuditLogger {
       trxName,
       trxModule,
       filename,
+      userToken: req.user,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
@@ -108,9 +107,6 @@ export class GLoggerAuditLogger {
       trxStatus: TransactionStatus.FAILURE,
       additionalInfo: { url: req.url, method: req.method }
     };
-    if (req.user) {
-      logData.userToken = redactUserToken(req.user);
-    }
     // Promise.reject() by convention should reject with Error.
     // but in scenarios where it rejects with other things, we still try our best to log the object
     if (error instanceof Error) {
@@ -122,17 +118,6 @@ export class GLoggerAuditLogger {
     }
     return this;
   }
-}
-
-function redactUserToken(token: IJwtPayload): IJwtPayload {
-  const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
-  // const emailRegex = /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
-  return (_.mapValues(token, (value) => {
-    if (typeof value === 'string' && nricRegex.test(value)) {
-      return '*****' + value.substring(5);
-    }
-    return value;
-  }) as unknown) as IJwtPayload;
 }
 
 function getSourceIp(req: IExpressRequest): string {

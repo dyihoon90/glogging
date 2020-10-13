@@ -34,8 +34,8 @@ export type ITransactionLog = IAuditLogData;
 
 export interface ICombinedLog extends Logform.TransformableInfo, IBasicLogData, IHttpLog, ITransactionLog {}
 
-export interface IConfigOptions {
-  loggingMode?: LoggingMode;
+export interface IConfigs {
+  loggingMode: LoggingMode;
 }
 
 /**

@@ -1,8 +1,10 @@
 import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';
-import { ICombinedLog, IConfigOptions, LoggingMode } from './domainModels/GLogger.interface';
+import { ICombinedLog, IConfigs, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import _ from 'lodash';
+
+const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
 /**
  * How to use this class:
@@ -12,13 +14,16 @@ import _ from 'lodash';
 export class GLogger {
   private logger: Logger;
   private verboseMode = false;
+  private loggingMode: LoggingMode = LoggingMode.PRODUCTION;
 
-  constructor({ loggingMode }: IConfigOptions) {
-    switch (loggingMode) {
+  constructor(inputConfigs: Partial<IConfigs>) {
+    const configs = { ...DEFAULT_CONFIG, ...inputConfigs };
+    this.loggingMode = configs.loggingMode;
+    switch (this.loggingMode) {
       case LoggingMode.LOCAL:
         this.logger = winston.createLogger({
           level: 'debug',
-          format: format.combine(formatTimestamp())
+          format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
         this.logger.add(
           new transports.Console({
@@ -29,7 +34,7 @@ export class GLogger {
       case LoggingMode.DEV:
         this.logger = winston.createLogger({
           level: 'info',
-          format: format.combine(formatTimestamp())
+          format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
         this.logger.add(
           new transports.Console({
@@ -192,4 +197,30 @@ function logVerbose(level: string, message: string, data?: Record<string, any>, 
   if (error) {
     console.log(`[GLogger] ${level}() received error: ${error.toString()}`);
   }
+}
+
+const sensitiveDataRedacter = winston.format((info) => {
+  recursiveRedactValue(info);
+  return info;
+})();
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+function recursiveRedactValue(obj: Record<string, any>) {
+  Object.keys(obj).forEach((key) => {
+    if (typeof obj[key] === 'string') {
+      obj[key] = redactSensitiveValue(obj[key]);
+    } else if (typeof obj[key] === 'object') {
+      obj[key] = recursiveRedactValue(obj[key]);
+    }
+  });
+  return obj;
+}
+
+function redactSensitiveValue(value: string): string {
+  const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
+  // const emailRegex = /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+  if (typeof value === 'string' && nricRegex.test(value)) {
+    return '*****' + value.substring(5);
+  }
+  return value;
 }

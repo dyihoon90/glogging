@@ -12,7 +12,7 @@ jest.mock('../src/GLogger', () => {
 });
 
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
-@LoggedTransactionClass(logger, 'TestModule', __filename)
+@LoggedTransactionClass(logger, 'TestModule', __filename, { toLogResults: true })
 class TestClass {
   syncSuccessMethod(str: string): string {
     return str;
@@ -40,7 +40,7 @@ class TestClass {
   }
 }
 
-describe('LogTransactionsForAllMethods', () => {
+describe('LoggedTransactionClass', () => {
   afterEach(jest.resetAllMocks);
   describe('When a synchronous method is decorated', () => {
     it('should remain a synchronous method', () => {
@@ -65,7 +65,7 @@ describe('LogTransactionsForAllMethods', () => {
       expect.assertions(1);
       testClass.syncSuccessMethod('test');
       expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncSuccessMethod success', {
-        additionalInfo: { method: undefined, url: undefined },
+        additionalInfo: { method: undefined, url: undefined, result: 'test' },
         filename: expect.any(String),
         timeTakenInMillis: expect.any(Number),
         trxCategory: 'TRANS',
@@ -104,7 +104,7 @@ describe('LogTransactionsForAllMethods', () => {
       expect.assertions(1);
       testClass.asyncSuccessMethod('test').then(() => {
         expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: asyncSuccessMethod success', {
-          additionalInfo: { method: undefined, url: undefined },
+          additionalInfo: { method: undefined, url: undefined, result: 'test' },
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
@@ -136,7 +136,7 @@ describe('LogTransactionsForAllMethods', () => {
       });
     });
   });
-  describe('When an async await method that reejcts with a string is decorated', () => {
+  describe('When an async await method that rejects with a string is decorated', () => {
     it('should call logger.warn', async (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
@@ -180,7 +180,8 @@ describe('LogTransactionsForAllMethods', () => {
   });
 });
 
-describe('LogTransation', () => {
+describe('LoggedTransaction', () => {
+  afterEach(jest.resetAllMocks);
   describe('When decorating a synchronous function', () => {
     it('should remain a synchronous function', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
@@ -197,6 +198,50 @@ describe('LogTransation', () => {
       const result = LoggedTransaction(logger, 'test_module')(syncFunc, {} as IExpressRequest, 'test');
 
       expect(result).toEqual('test');
+    });
+  });
+  describe('When decorating a function and toLogResult is set to true', () => {
+    it('should log the result', () => {
+      const syncFunc = (req: IExpressRequest, x: string) => x;
+
+      LoggedTransaction(logger, 'test_module', 'filename.ts', { toLogResults: true })(
+        syncFunc,
+        {} as IExpressRequest,
+        'test'
+      );
+
+      expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
+        additionalInfo: { method: undefined, url: undefined, result: 'test' },
+        filename: expect.any(String),
+        timeTakenInMillis: expect.any(Number),
+        trxCategory: 'TRANS',
+        trxId: 'missing trxId in req',
+        trxModule: 'test_module',
+        trxName: 'syncFunc',
+        trxStatus: 'SUCCESS'
+      });
+    });
+  });
+  describe('When decorating a function and toLogResult is set to false', () => {
+    it('should not log the result', () => {
+      const syncFunc = (req: IExpressRequest, x: string) => x;
+
+      LoggedTransaction(logger, 'test_module', 'filename.ts', { toLogResults: false })(
+        syncFunc,
+        {} as IExpressRequest,
+        'test'
+      );
+
+      expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
+        additionalInfo: { method: undefined, url: undefined },
+        filename: expect.any(String),
+        timeTakenInMillis: expect.any(Number),
+        trxCategory: 'TRANS',
+        trxId: 'missing trxId in req',
+        trxModule: 'test_module',
+        trxName: 'syncFunc',
+        trxStatus: 'SUCCESS'
+      });
     });
   });
 });

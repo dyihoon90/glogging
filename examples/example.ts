@@ -19,7 +19,6 @@ const transport = new transports.Console({
   format: format.combine(format.json())
 });
 // logger.addLogTransport(transport);
-
 function divider(section?: string) {
   console.log(
     `\n--------------------------------------------------------${
@@ -28,8 +27,8 @@ function divider(section?: string) {
   );
 }
 
-function aSyncSuccessTransaction(request: IExpressRequest, str: string): string {
-  return str;
+function aSyncSuccessTransaction(request: IExpressRequest, obj: Record<string, any>): Record<string, any> {
+  return obj;
 }
 
 const aSyncSuccessArrowTransaction = (request: IExpressRequest, str: string): string => {
@@ -40,7 +39,13 @@ function aSyncFailTransaction(request: IExpressRequest, str: string): string {
   throw new Error(str);
 }
 
-@LoggedTransactionClass(logger, 'trxmodule', __filename)
+class OtherClass {
+  @LoggedTransactionMethod(logger, 'OtherClass', __filename, { toLogResults: true })
+  public getSurname(request: IExpressRequest, str: string) {
+    return 'surname' + str;
+  }
+}
+@LoggedTransactionClass(logger, 'trxmodule', __filename, { toLogResults: true })
 class TransactionModule {
   public greeting = 'hi';
   public otherClass = new OtherClass();
@@ -122,6 +127,7 @@ new GLoggerAuditLogger(logger).logTransactionSuccess(
 );
 divider('LOGGING TRANSACTIONS END');
 
+//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR');
 new TransactionModule().syncTransactionSucceded(req as IExpressRequest, 'success!');
 new TransactionModule().asyncTransactionSucceded(req as IExpressRequest, 'success!');
@@ -129,21 +135,13 @@ new TransactionModule().asyncTransactionFailedWithStringExample(req as IExpressR
 new TransactionModule().asyncTransactionFailedBadExample(req as IExpressRequest);
 divider('LOGGING TRANSACTIONS WITH CLASS DECORATOR END');
 
-//EXAMPLE: LOGGING TRANSACTIONS: LOGGING WITH DECORATOR
-class OtherClass {
-  @LoggedTransactionMethod(logger, 'OtherClass', __filename)
-  public getSurname(request: IExpressRequest, str: string) {
-    return 'surname' + str;
-  }
-}
-
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR');
-LoggedTransaction(logger, 'Test Transaction Module', __filename)(
+LoggedTransaction(logger, 'Test Transaction Module', __filename, { toLogResults: true })(
   aSyncSuccessTransaction,
   req as IExpressRequest,
-  'resolved successfully'
+  { myObj: { b: { c: 'S1234567A' } } }
 );
-LoggedTransaction(logger, 'Test Transaction Module', __filename)(
+LoggedTransaction(logger, 'Test Transaction Module', __filename, { toLogResults: true })(
   aSyncSuccessArrowTransaction,
   req as IExpressRequest,
   'resolved successfully'

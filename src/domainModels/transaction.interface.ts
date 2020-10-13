@@ -8,3 +8,7 @@ export enum TransactionStatus {
   SUCCESS = 'SUCCESS',
   FAILURE = 'FAILURE'
 }
+
+export interface ITransactionLoggingOptions {
+  toLogResults: boolean;
+}
