@@ -37,7 +37,7 @@ export function redactProperties<T extends Record<string | number | symbol, any>
   } else {
     Object.keys(clonedObj).forEach((key) => {
       if (redactedProperties.includes(key) && typeof clonedObj === 'object') {
-        delete clonedObj[key];
+        clonedObj[key as any] = '[REDACTED]';
       }
       if (typeof clonedObj[key] === 'object') {
         clonedObj[key as any] = redactProperties(redactedProperties, clonedObj[key]);

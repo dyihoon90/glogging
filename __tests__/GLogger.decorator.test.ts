@@ -247,7 +247,7 @@ describe('LoggedFunction', () => {
         ]);
 
         expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
-          additionalInfo: { method: undefined, url: undefined, result: [{ key2: 'd' }] },
+          additionalInfo: { method: undefined, url: undefined, result: [{ key1: '[REDACTED]', key2: 'd' }] },
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',

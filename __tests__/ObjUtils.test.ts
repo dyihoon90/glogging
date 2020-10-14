@@ -18,7 +18,7 @@ describe('redactProperties', () => {
       const redacted = redactProperties(propsToRedact, obj);
 
       expect(obj).toEqual({ key1: 'a', key2: { key3: { key4: 'b' } } });
-      expect(redacted).toEqual({ key2: {} });
+      expect(redacted).toEqual({ key1: '[REDACTED]', key2: { key3: '[REDACTED]' } });
     });
   });
   describe('When passed in an Object', () => {
@@ -28,7 +28,7 @@ describe('redactProperties', () => {
 
       const redacted = redactProperties(propsToRedact, obj);
 
-      expect(redacted).toEqual({ key2: {} });
+      expect(redacted).toEqual({ key1: '[REDACTED]', key2: { key3: '[REDACTED]' } });
     });
   });
   describe('When passed in an Array', () => {
@@ -43,7 +43,11 @@ describe('redactProperties', () => {
 
         const redacted = redactProperties(propsToRedact, obj);
 
-        expect(redacted).toEqual([{ key2: 'x' }, { key2: 'y' }, { key2: 'z' }]);
+        expect(redacted).toEqual([
+          { key1: '[REDACTED]', key2: 'x' },
+          { key1: '[REDACTED]', key2: 'y' },
+          { key1: '[REDACTED]', key2: 'z', key3: '[REDACTED]' }
+        ]);
       });
     });
     describe('When redacting indexes in the array', () => {
@@ -57,7 +61,10 @@ describe('redactProperties', () => {
 
         const redacted = redactProperties(propsToRedact, obj);
 
-        expect(redacted).toEqual([{ key2: 'x' }, { key2: 'z' }]);
+        expect(redacted).toEqual([
+          { key1: '[REDACTED]', key2: 'x' },
+          { key1: '[REDACTED]', key2: 'z' }
+        ]);
       });
     });
   });
