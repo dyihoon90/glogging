@@ -2,6 +2,7 @@
 import { GLogger, IExpressRequest, ITransactionLoggingOptions } from '.';
 import { IDecoratorMetadata } from './domainModels';
 import { GLoggerAuditLogger } from './GLogger.auditLogger';
+import { redactProperties } from './utils/ObjUtils';
 
 const DEFAULT_OPTIONS: ITransactionLoggingOptions = {
   toLogResults: false
@@ -15,8 +16,11 @@ const DEFAULT_OPTIONS: ITransactionLoggingOptions = {
  * - Modifies all class methods except the constructor method
  * - Arrow functions are _not_ considered class methods
  * @param logger a GLogger instance
- * @param trxModule the transaction module e.g. INBOX_CLAIM
- * @param filename the filename. In Node.js can use __filename (if not webpacked)
+ * @param metadata metadata including transaction category, transaction module, & optional filename
+ * @param options Optional option parameter
+ * - toLogResult - whether to log the return value of the decorated function. Defaults to false.
+ * - redactedProperties(optional) - if `toLogResult` set to true, use this array for properties you don't want logged out.
+ * @example result = [{key1: 'a',key2: 'b'}, {key1: 'c',key2: 'd'}]; redactedProperties = ['key1', 0]; loggedResult = [{key2: 'd'}]
  */
 export function LoggedClass(
   logger: GLogger,
@@ -50,9 +54,11 @@ export function LoggedClass(
  * - Modifies all class methods except the constructor method
  * - Arrow functions are _not_ considered class methods
  * @param logger a GLogger instance
- * @param trxModule the transaction module e.g. INBOX_CLAIM
- * @param filename the filename. In Node.js can use __filename (if not webpacked)
- * @returns a function that takes in boolean, whether to log the results of the function or not
+ * @param metadata metadata including transaction category, transaction module, & optional filename
+ * @param options Optional option parameter
+ * - toLogResult - whether to log the return value of the decorated function. Defaults to false.
+ * - redactedProperties(optional) - if `toLogResult` set to true, use this array for properties you don't want logged out.
+ * @example result = [{key1: 'a',key2: 'b'}, {key1: 'c',key2: 'd'}]; redactedProperties = ['key1', 0]; loggedResult = [{key2: 'd'}]
  */
 export function LoggedMethod(
   logger: GLogger,
@@ -63,14 +69,12 @@ export function LoggedMethod(
     const originalMethod = descriptor.value;
 
     if (typeof originalMethod !== 'function') {
-      throw new TypeError(
-        `@LogTransactionMethod decorator can only be applied to methods not: ${typeof originalMethod}`
-      );
+      throw new TypeError(`@LoggedMethod decorator can only be applied to methods not: ${typeof originalMethod}`);
     }
     return {
       configurable: false,
       get() {
-        if (this === target.prototype || typeof originalMethod !== 'function') {
+        if (this === target.prototype) {
           return originalMethod;
         }
         descriptor.value = (req: IExpressRequest, ...args: unknown[]) => {
@@ -92,9 +96,11 @@ export function LoggedMethod(
  * - Creates success audit log of level `info` on return
  * - Creates fail audit log of level `warn` on error thrown
  * @param logger a GLogger instance
- * @param trxModule the transaction module e.g. INBOX_CLAIM
- * @param filename the filename. In Node.js can use __filename (if not webpacked)
- * @param
+ * @param metadata metadata including transaction category, transaction module, & optional filename
+ * @param options Optional option parameter
+ * - toLogResult - whether to log the return value of the decorated function. Defaults to false.
+ * - redactedProperties(optional) - if `toLogResult` set to true, use this array for properties you don't want logged out.
+ * @example result = [{key1: 'a',key2: 'b'}, {key1: 'c',key2: 'd'}]; redactedProperties = ['key1', 0]; loggedResult = [{key2: 'd'}]
  */
 export function LoggedFunction(logger: GLogger, metadata: IDecoratorMetadata, options?: ITransactionLoggingOptions) {
   return function <U extends unknown[], V>(
@@ -140,11 +146,12 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
       return promiseOrValue
         .then((result) => {
           if (opt.toLogResults) {
-            logSuccess(result);
+            const redactedResult = redactProperties(opt.redactedProperties || [], result);
+            logSuccess(redactedResult);
           } else {
             logSuccess();
           }
-          return result as unknown;
+          return result;
         })
         .catch((e) => {
           logFailure(e);
@@ -154,7 +161,8 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
     // Scenario where decoratedFunc is synchronous returning value
     // Why separate? if we `await` sync decoratedFunc, return value gets casted into Promise, becoming async
     if (opt.toLogResults) {
-      logSuccess(promiseOrValue);
+      const redactedResult = redactProperties(opt.redactedProperties || [], promiseOrValue);
+      logSuccess(redactedResult);
     } else {
       logSuccess();
     }

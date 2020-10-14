@@ -3,6 +3,7 @@ import * as Transport from 'winston-transport';
 import { ICombinedLog, IConfigs, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import _ from 'lodash';
+import { traverseObject } from './utils/ObjUtils';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -200,23 +201,14 @@ function logVerbose(level: string, message: string, data?: Record<string, any>, 
 }
 
 const sensitiveDataRedacter = winston.format((info) => {
-  recursiveRedactValue(info);
+  traverseObject(info, redactSensitiveValue);
   return info;
 })();
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function recursiveRedactValue(obj: Record<string, any>) {
-  Object.keys(obj).forEach((key) => {
-    if (typeof obj[key] === 'string') {
-      obj[key] = redactSensitiveValue(obj[key]);
-    } else if (typeof obj[key] === 'object') {
-      obj[key] = recursiveRedactValue(obj[key]);
-    }
-  });
-  return obj;
-}
-
 function redactSensitiveValue(value: string): string {
+  if (typeof value !== 'string') {
+    return value;
+  }
   const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
   // const emailRegex = /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
   if (typeof value === 'string' && nricRegex.test(value)) {
