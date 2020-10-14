@@ -1,8 +1,9 @@
+import _ from 'lodash';
+import isSecret from 'is-secret';
 import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';
 import { ICombinedLog, IConfigs, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
-import _ from 'lodash';
 import { traverseObject } from './utils/ObjUtils';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
@@ -205,7 +206,12 @@ const sensitiveDataRedacter = winston.format((info) => {
   return info;
 })();
 
-function redactSensitiveValue(value: string): string {
+/**
+ * redacts all sensitive values
+ * @param key property key of the object
+ * @param value value of the object's property
+ */
+function redactSensitiveValue(key: string, value: string): string {
   if (typeof value !== 'string') {
     return value;
   }
@@ -213,6 +219,9 @@ function redactSensitiveValue(value: string): string {
   // const emailRegex = /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
   if (typeof value === 'string' && nricRegex.test(value)) {
     return '*****' + value.substring(5);
+  }
+  if (isSecret.key(key) || isSecret.value(value)) {
+    return '[REDACTED]';
   }
   return value;
 }

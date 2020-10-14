@@ -13,6 +13,35 @@ describe('Test GLogger', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+  describe('Test Redacting', () => {
+    describe('When any of the object property contains `token` keyword', () => {
+      it('should be redacted', () => {
+        logger.info('msg', { a_session_tOkEN: 'my-secret-token' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({ a_session_tOkEN: '[REDACTED]', level: 'info', message: 'msg' })
+        );
+      });
+    });
+    describe('When any of the object property contains `secret` keyword', () => {
+      it('should be redacted', () => {
+        logger.info('msg', { a_sEcReT_value: 'my-secret-value' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({ a_sEcReT_value: '[REDACTED]', level: 'info', message: 'msg' })
+        );
+      });
+    });
+    describe('When any of the object value looks like a Singapore NRIC', () => {
+      it('should be redacted', () => {
+        logger.info('msg', { nric: 'T1234567Z' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({ nric: '*****567Z', level: 'info', message: 'msg' })
+        );
+      });
+    });
+  });
   describe('Test Debug log', () => {
     test('should call transport in the correct format', () => {
       logger.debug('msg', { data1: 'value' });
@@ -90,14 +119,3 @@ describe('Test GLogger', () => {
     });
   });
 });
-
-const token = {
-  sub: 'test_user@t.g.sg',
-  jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-  iat: 1600665219,
-  exp: 1608441219,
-  iss: 'onemobileuserauthws.dwp.gov.sg',
-  'appInstanceID.dwp.gov.sg': '1',
-  'appID.dwp.gov.sg': 'oma-facade',
-  'singpass_nric.dwp.gov.sg': 'S1234567A'
-};

@@ -1,11 +1,11 @@
 import _ from 'lodash';
 
-export function traverseObject(obj: Record<string | number | symbol, any>, callback: (valueToBeRedacted: any) => any) {
+export function traverseObject(obj: Record<string | number | symbol, any>, callback: (key: string, value: any) => any) {
   Object.keys(obj).forEach((key) => {
     if (typeof obj[key] === 'object') {
       obj[key] = traverseObject(obj[key], callback);
     } else {
-      obj[key] = callback(obj[key]);
+      obj[key] = callback(key, obj[key]);
     }
   });
   return obj;
