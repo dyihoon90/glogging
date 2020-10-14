@@ -69,5 +69,5 @@
     "sourceMap": true,
     "declaration": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts", "__tests__/**/*.ts", "examples/**/*.ts"]
 }
