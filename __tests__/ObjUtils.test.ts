@@ -1,6 +1,15 @@
 import { redactProperties } from '../src/utils/ObjUtils';
 
 describe('redactProperties', () => {
+  describe('When empty array of properties is passed in', () => {
+    it('should return a cloned object that is the same as the original', () => {
+      const obj = { key1: 'a', key2: { key3: { key4: 'b' } } };
+
+      const redacted = redactProperties([], obj);
+
+      expect(redacted).toEqual(obj);
+    });
+  });
   describe('When redacting any object', () => {
     it('should not mutate the original', () => {
       const obj = { key1: 'a', key2: { key3: { key4: 'b' } } };

@@ -11,7 +11,7 @@ export enum TransactionStatus {
 
 export interface ITransactionLoggingOptions {
   toLogResults: boolean;
-  redactedProperties?: any[];
+  redactedProperties?: Array<string | number | symbol>;
 }
 
 export interface ITransactionMetadata {

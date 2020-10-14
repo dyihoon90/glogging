@@ -140,14 +140,14 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
       { trxCategory, filename, trxName: fnName, trxModule },
       startTime
     );
+    const redact = redactProperties.bind(null, opt.redactedProperties as any);
 
     // Scenario where decoratedFunc is asynchronous returning Promise
     if (promiseOrValue instanceof Promise) {
       return promiseOrValue
         .then((result) => {
           if (opt.toLogResults) {
-            const redactedResult = redactProperties(opt.redactedProperties || [], result);
-            logSuccess(redactedResult);
+            opt.redactedProperties && result ? logSuccess(redact(result)) : logSuccess(result);
           } else {
             logSuccess();
           }
@@ -161,8 +161,7 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
     // Scenario where decoratedFunc is synchronous returning value
     // Why separate? if we `await` sync decoratedFunc, return value gets casted into Promise, becoming async
     if (opt.toLogResults) {
-      const redactedResult = redactProperties(opt.redactedProperties || [], promiseOrValue);
-      logSuccess(redactedResult);
+      opt.redactedProperties && promiseOrValue ? logSuccess(redact(promiseOrValue)) : logSuccess(promiseOrValue);
     } else {
       logSuccess();
     }

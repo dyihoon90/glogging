@@ -22,6 +22,9 @@ export function redactProperties<T extends Record<string | number | symbol, any>
   obj: T
 ): T {
   const clonedObj = _.clone(obj);
+  if (!redactedProperties || redactProperties.length === 0 || !obj) {
+    return clonedObj;
+  }
   if (Array.isArray(clonedObj)) {
     clonedObj.forEach((_value, index) => {
       if (redactedProperties.includes(index)) {

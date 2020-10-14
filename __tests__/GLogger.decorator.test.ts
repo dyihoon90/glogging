@@ -212,7 +212,7 @@ describe('LoggedFunction', () => {
       expect(result).toEqual('test');
     });
   });
-  describe('When decorating a function and toLogResult is set to true', () => {
+  describe('When decorating a function and opt.toLogResult is set to true', () => {
     it('should log the result', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
@@ -231,6 +231,31 @@ describe('LoggedFunction', () => {
         trxModule: 'test_module',
         trxName: 'syncFunc',
         trxStatus: 'SUCCESS'
+      });
+    });
+    describe('When opt.redactedProperties is also defined', () => {
+      it('should log redacted', () => {
+        const syncFunc = (req: IExpressRequest, x: Object) => x;
+
+        LoggedFunction(
+          logger,
+          { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+          { toLogResults: true, redactedProperties: ['key1', 0] }
+        )(syncFunc, {} as IExpressRequest, [
+          { key1: 'a', key2: 'b' },
+          { key1: 'c', key2: 'd' }
+        ]);
+
+        expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
+          additionalInfo: { method: undefined, url: undefined, result: [{ key2: 'd' }] },
+          filename: expect.any(String),
+          timeTakenInMillis: expect.any(Number),
+          trxCategory: 'TRANS',
+          trxId: 'missing trxId in req',
+          trxModule: 'test_module',
+          trxName: 'syncFunc',
+          trxStatus: 'SUCCESS'
+        });
       });
     });
   });
