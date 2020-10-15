@@ -34,7 +34,7 @@ export class GLoggerAuditLogger {
         ? Duration.between(Instant.ofEpochMilli(req.reqStartTimeInEpochMillis), ZonedDateTime.now()).toMillis()
         : undefined,
       trxStatus: TransactionStatus.SUCCESS,
-      additionalInfo: { url: req.url, method: req.method, srcIp: getSourceIp(req), statusCode: res.statusCode }
+      additionalInfo: { url: req.url, method: req.method, srcIp: req.ip, statusCode: res.statusCode }
     };
     this.glogger.info(message, { ...logData });
     return this;
@@ -59,7 +59,7 @@ export class GLoggerAuditLogger {
       additionalInfo: {
         url: req.url,
         method: req.method,
-        srcIp: getSourceIp(req),
+        srcIp: req.ip,
         statusCode: res.statusCode
       }
     };
@@ -126,8 +126,4 @@ export class GLoggerAuditLogger {
     }
     return this;
   }
-}
-
-function getSourceIp(req: IExpressRequest): string {
-  return (req.headers && req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'] : req.ip) as string;
 }
