@@ -3,7 +3,7 @@ import { transports } from 'winston';
 import { GLogger, IExpressRequest, IExpressResponse, LoggingMode, TransactionCategory } from '../src';
 import { GLoggerAuditLogger } from '../src/GLogger.auditLogger';
 
-describe('Test GLogger', () => {
+describe('Test GLogger auditLogger', () => {
   let mockFn: () => any;
   let logger: GLogger;
   beforeAll(() => {
@@ -31,7 +31,7 @@ describe('Test GLogger', () => {
           filename: 'file/name.ts',
           level: 'info',
           message: 'msg',
-          additionalInfo: { method: 'GET', srcIp: '999.999.999.999', statusCode: 200, url: 'test/test/aa' },
+          additionalInfo: { method: 'GET', srcIp: '123.111.222.333', statusCode: 200, url: 'test/test/aa' },
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'HTTP',
           trxId: 'uuid-123',
@@ -71,7 +71,7 @@ describe('Test GLogger', () => {
           message: 'Error',
           additionalInfo: {
             method: 'GET',
-            srcIp: '999.999.999.999',
+            srcIp: '123.111.222.333',
             statusCode: 400,
             url: 'test/test/aa',
             error: { message: 'error msg', name: 'Error', stack: expect.any(String) }
@@ -198,9 +198,6 @@ const token = {
 const req: Partial<IExpressRequest> = {
   reqStartTimeInEpochMillis: 1600939344000,
   ip: '123.111.222.333',
-  headers: {
-    'x-forwarded-for': '999.999.999.999'
-  },
   url: 'test/test/aa',
   uuid: 'uuid-123',
   user: token,
