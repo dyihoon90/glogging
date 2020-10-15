@@ -34,8 +34,8 @@ export function enhanceReqWithTransactionAndTime(
  * @param logger A GLogger instance
  * @param trxModule the transaction module e.g. DWP
  * @param trxName the transaction name e.g. HRP
- * @param passErrorToNext whether to pass the error to the next middleware function. Defaults to false. If set to false, this should be the last middleware
  * @param filename the filename. In Node.js can use __filename (if not webpacked)
+ * @param passErrorToNext whether to pass the error to the next middleware function. Defaults to false. If set to false, this should be the last middleware
  */
 export function responseErrorLoggerFactory(
   logger: GLogger,
