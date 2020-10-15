@@ -1,7 +1,7 @@
 ![Release pipeline](https://github.com/dyihoon90/glogging/workflows/Release%20Package%20to%20NPM/badge.svg)
 ![CI pipeline](https://github.com/dyihoon90/glogging/workflows/Run%20CI%20per%20push%20to%20Github%20repo/badge.svg)
 
-# Opiniated audit logger for Express HTTP & Transactions
+# Audit logger for Express requests and Transactions
 
 ### Installation
 
@@ -11,8 +11,8 @@
 
 This library builds on winston to provide a GLogger class to do logging for:
 
-1. requests in express
-2. logging for transactions to external systems in express
+1. HTTP requests in express
+2. Logging for transactions to external systems
 
 There are 3 modes:
 
@@ -25,14 +25,6 @@ There are 3 modes:
 ### PRODUCTION
 - Defaults to have no transport at all. Use logger.addTransport to add a winston log transport
 - Log level up to info
-
-### EXAMPLES
-
-For example usage of this library, clone this library, do `npm i`, then:
-
-Run `npm run example` to see normal and transaction function decorator examples
-
-Run `npm run example-server` to create an example express server and see middleware examples
 
 ---
 This library includes the following:
@@ -71,8 +63,6 @@ This library has the following express middlewares
 
 ## 2. Class, Method & Function decorators
 
-Class decorator for logging success/failure of transactions to external systems, such as other APIs or DB calls.
-
 ### Purpose
 Using the decorators, we can log applications functions we deem to be transactions, such as those making calls to external systems or databases
 
@@ -100,7 +90,7 @@ Decorator will log functions with the following metadata:
 | additionalInfo.result | Result                     | The result of the returned function. Only logged if options.toLogResult is set to `true`. Use options.redactedProperties to add object properties to redact from the logged result       | `{ aPublicValue: 'OK', 'aSecretValue': '[REDACTED]'` |
 | additionalInfo.error  | Error                      | The error thrown by the function, only when status is 'FAILURE'                                                                                                                          | 'new Error('error')'                                 |
 
-### Middlewares
+### Decorators
 
 This library has the following class, class method, & function decorators
 
@@ -121,3 +111,13 @@ All the above are decorator factories. In order to create the decorator, they ta
 | options                    | Optional option parameter                                                                                                                                                                                                                                                     | optional                   |                             |
 | options.toLogResult        | whether to log the return value of the decorated function. Defaults to false.                                                                                                                                                                                                 | required if options is set | `true`/`false`              |
 | options.redactedProperties | if `options.toLogResult` set to true, use this array for properties from the function return value you don't want logged. works for both objects with nested properties and objects inside of arrays. you can also pass in an integer to redact a particular item in an array | optional                   | ['mySecretProperty', 0]     |
+
+
+## Examples
+
+See examples folder for usage.
+
+Or you can clone this repo and run:
+- `npm i` then,
+- `npm run example` for base logger and decorator demo
+- `npm run example-server` for middleware demo
