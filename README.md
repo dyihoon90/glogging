@@ -11,26 +11,52 @@
 
 This library builds on winston to provide a GLogger class to do logging for:
 
-1. HTTP requests in express
-2. Logging for transactions to external systems
+1. Normal logging
+2. HTTP requests in express
+3. Logging for transactions to external systems
 
-There are 3 modes:
 
-### LOCAL
-- defaults to have transport for console.
-- Log level up to debug
-### DEV
-- Defaults to have transport for console.
-- Log level up to info
-### PRODUCTION
-- Defaults to have no transport at all. Use logger.addTransport to add a winston log transport
-- Log level up to info
 
 ---
 This library includes the following:
 
+## GLogger
 
-## 1. Express middlewares
+A glogger instance uses the `winston` logger library under the hood.
+
+### constructor
+
+```typescript
+const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
+```
+
+When constructing an instance, there are 3 modes:
+
+#### LOCAL
+- defaults to have transport for console.
+- Log level up to debug
+#### DEV
+- Defaults to have transport for console.
+- Log level up to info
+#### PRODUCTION
+- Defaults to have no transport at all. Use glogger.addTransport to add a winston log transport
+- Log level up to info
+
+---
+
+### Instance methods
+| Method              | Purpose                                                              |
+| ------------------- | -------------------------------------------------------------------- |
+| debug               | create log object of level debug                                     |
+| info                | create log object of level info                                      |
+| warn                | create log object of level warn                                      |
+| error               | create log object of level error                                     |
+| toggleVerboseModeOn | toggle debug mode to see what is being sent to the above log methods |
+| addLogTransport     | add a winston log transport to transport the log object              |
+
+---
+
+## Express middlewares
 
 Express middleware will log all request and response with the following metadata:
 | Metadata                  | Full Name                  | What is it?                                                                                                                                                                                                                    | Example                                |
@@ -47,21 +73,21 @@ Express middleware will log all request and response with the following metadata
 | additionalInfo.statusCode | Status Code                | The HTTP status code returned to the client                                                                                                                                                                                    | 200                                    |
 | additionalInfo.error      | Error                      | The error passed to the error logger middleware, only when status is 'FAILURE'                                                                                                                                                 | 'new Error('error')'                   |
 
-
+---
 
 ### Middlewares
 
 This library has the following express middlewares
 
-| Middleware                       | Purpose                                                                                            |     |     |     |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- | --- | --- | --- |
-| enhanceReqWithTransactionAndTime | enhance request with req.reqStartTimeInEpochMillis & req.uuid (if req.uuid does not already exist) |     |     |     |
-| responseErrorLoggerFactory       | factory to create an error logger middleware. See middleware.example.ts for how to use it          |     |     |     |
-| responseSuccessLoggerFactory     | factory to create a successs logger middleware. See middleware.example.ts for how to use it        |     |     |     |
+| Middleware                       | Purpose                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| enhanceReqWithTransactionAndTime | enhance request with req.reqStartTimeInEpochMillis & req.uuid (if req.uuid does not already exist) |
+| responseErrorLoggerFactory       | factory to create an error logger middleware. See middleware.example.ts for how to use it          |
+| responseSuccessLoggerFactory     | factory to create a successs logger middleware. See middleware.example.ts for how to use it        |
 
 ---
 
-## 2. Class, Method & Function decorators
+## Class, Method & Function decorators
 
 ### Purpose
 Using the decorators, we can log applications functions we deem to be transactions, such as those making calls to external systems or databases
@@ -70,6 +96,7 @@ Using the decorators, we can log applications functions we deem to be transactio
 ### Metadata
 
 All functions being logged must take in an `IExpressRequest` object as its first parameter, even if the function itself doesn't require it.
+
 
 You need to use the `enhanceReqWithTransactionAndTime` above for `trxId` & `timeTakenInMillis` to work.
 
@@ -89,6 +116,8 @@ Decorator will log functions with the following metadata:
 | additionalInfo.method | Method                     | The HTTP method                                                                                                                                                                          | 'GET'                                                |
 | additionalInfo.result | Result                     | The result of the returned function. Only logged if options.toLogResult is set to `true`. Use options.redactedProperties to add object properties to redact from the logged result       | `{ aPublicValue: 'OK', 'aSecretValue': '[REDACTED]'` |
 | additionalInfo.error  | Error                      | The error thrown by the function, only when status is 'FAILURE'                                                                                                                          | 'new Error('error')'                                 |
+
+---
 
 ### Decorators
 
@@ -112,6 +141,7 @@ All the above are decorator factories. In order to create the decorator, they ta
 | options.toLogResult        | whether to log the return value of the decorated function. Defaults to false.                                                                                                                                                                                                 | required if options is set | `true`/`false`              |
 | options.redactedProperties | if `options.toLogResult` set to true, use this array for properties from the function return value you don't want logged. works for both objects with nested properties and objects inside of arrays. you can also pass in an integer to redact a particular item in an array | optional                   | ['mySecretProperty', 0]     |
 
+---
 
 ## Examples
 
