@@ -1,7 +1,7 @@
 {
   "name": "@dyihoon90/glogging",
   "version": "2.6.5",
-  "description": "",
+  "description": "HTTP request logging middleware & transaction function decorator for express, using winston",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest -i",
@@ -52,5 +52,14 @@
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3",
     "winston-transport": "^4.4.0"
-  }
+  },
+  "keywords": [
+    "express",
+    "http",
+    "logger",
+    "middleware",
+    "transaction",
+    "decorator",
+    "winston"
+  ]
 }
