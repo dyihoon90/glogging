@@ -48,7 +48,7 @@ export class GLogger {
       default:
         this.logger = winston.createLogger({
           level: 'info',
-          format: format.combine(formatTimestamp())
+          format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
     }
   }
