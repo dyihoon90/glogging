@@ -1,6 +1,9 @@
 import _ from 'lodash';
 
 export function traverseObject(obj: Record<string | number | symbol, any>, callback: (key: string, value: any) => any) {
+  if (!obj) {
+    return obj;
+  }
   Object.keys(obj).forEach((key) => {
     if (typeof obj[key] === 'object') {
       obj[key] = traverseObject(obj[key], callback);
