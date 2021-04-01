@@ -68,4 +68,18 @@ describe('redactProperties', () => {
       });
     });
   });
+  describe('When redacting a property that does not exist', () => {
+    it('should do nothing', () => {
+      const obj = [
+        { key1: 'a', key2: 'x' },
+        { key1: 'b', key2: 'y' },
+        { key1: 'c', key2: 'z' }
+      ];
+      const propsToRedact = ['nonexistentkey'];
+
+      const redacted = redactProperties(propsToRedact, obj);
+
+      expect(redacted).toEqual(obj);
+    });
+  });
 });
