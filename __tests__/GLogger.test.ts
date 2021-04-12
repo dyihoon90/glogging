@@ -118,4 +118,36 @@ describe('Test GLogger', () => {
       });
     });
   });
+  describe('Test Logging Levels', () => {
+    afterEach(jest.clearAllMocks);
+    it('should call winston .debug method if Logging mode is LOCAL', () => {
+      mockFn = jest.fn();
+      const testLogger = new GLogger({ loggingMode: LoggingMode.LOCAL });
+      testLogger.addLogTransport(new transports.Console({ format: format.printf(mockFn) }));
+
+      testLogger.debug('msg');
+
+      expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ level: 'debug', message: 'msg' }));
+    });
+
+    it('should not call winston .debug method if Logging mode is DEV', () => {
+      mockFn = jest.fn();
+      const testLogger = new GLogger({ loggingMode: LoggingMode.DEV });
+      testLogger.addLogTransport(new transports.Console({ format: format.printf(mockFn) }));
+
+      testLogger.debug('msg');
+
+      expect(mockFn).not.toHaveBeenCalledWith(expect.objectContaining({ level: 'debug', message: 'msg' }));
+    });
+
+    it('should not call winston .debug method if Logging mode is PRODUCTION', () => {
+      mockFn = jest.fn();
+      const testLogger = new GLogger({ loggingMode: LoggingMode.PRODUCTION });
+      testLogger.addLogTransport(new transports.Console({ format: format.printf(mockFn) }));
+
+      testLogger.debug('msg');
+
+      expect(mockFn).not.toHaveBeenCalledWith(expect.objectContaining({ level: 'debug', message: 'msg' }));
+    });
+  });
 });

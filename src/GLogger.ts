@@ -1,8 +1,7 @@
-import _ from 'lodash';
 import isSecret from 'is-secret';
 import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';
-import { ICombinedLog, IConfigs, LoggingMode } from './domainModels/GLogger.interface';
+import { ICombinedLog, IConfigs, LoggingLevel, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import { traverseObject } from './utils/ObjUtils';
 
@@ -17,12 +16,14 @@ export class GLogger {
   private logger: Logger;
   private verboseMode = false;
   private loggingMode: LoggingMode = LoggingMode.PRODUCTION;
+  private loggingLevel: LoggingLevel = LoggingLevel.INFO;
 
   constructor(inputConfigs: Partial<IConfigs>) {
     const configs = { ...DEFAULT_CONFIG, ...inputConfigs };
     this.loggingMode = configs.loggingMode;
     switch (this.loggingMode) {
       case LoggingMode.LOCAL:
+        this.loggingLevel = LoggingLevel.DEBUG;
         this.logger = winston.createLogger({
           level: 'debug',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
@@ -34,6 +35,7 @@ export class GLogger {
         );
         break;
       case LoggingMode.DEV:
+        this.loggingLevel = LoggingLevel.INFO;
         this.logger = winston.createLogger({
           level: 'info',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
@@ -46,6 +48,7 @@ export class GLogger {
         break;
       case LoggingMode.PRODUCTION:
       default:
+        this.loggingLevel = LoggingLevel.INFO;
         this.logger = winston.createLogger({
           level: 'info',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
@@ -80,7 +83,9 @@ export class GLogger {
     if (this.verboseMode) {
       logVerbose('debug', message, data);
     }
-    this.logger.debug(message, data);
+    if (this.loggingLevel <= LoggingLevel.DEBUG) {
+      this.logger.debug(message, data);
+    }
     return this;
   }
 
@@ -98,7 +103,9 @@ export class GLogger {
     if (this.verboseMode) {
       logVerbose('info', message, data);
     }
-    this.logger.info(message, data);
+    if (this.loggingLevel <= LoggingLevel.INFO) {
+      this.logger.info(message, data);
+    }
     return this;
   }
 
@@ -124,7 +131,9 @@ export class GLogger {
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
-    this.logger.warn(message, dataToLog);
+    if (this.loggingLevel <= LoggingLevel.WARN) {
+      this.logger.warn(message, dataToLog);
+    }
     return this;
   }
 
@@ -149,7 +158,9 @@ export class GLogger {
         error: { stack: error.stack, message: error.message, name: error.name }
       };
     }
-    this.logger.error(message, dataToLog);
+    if (this.loggingLevel <= LoggingLevel.ERROR) {
+      this.logger.error(message, dataToLog);
+    }
     return this;
   }
 }

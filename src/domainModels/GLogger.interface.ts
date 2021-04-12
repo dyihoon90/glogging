@@ -48,3 +48,11 @@ export enum LoggingMode {
   DEV = 'DEV',
   PRODUCTION = 'PRODUCTION'
 }
+
+export enum LoggingLevel {
+  SILLY,
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
+}
