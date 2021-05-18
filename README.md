@@ -42,6 +42,20 @@ When constructing an instance, there are 3 modes:
 - Defaults to have no transport at all. Use glogger.addTransport to add a winston log transport
 - Log level up to info
 
+To override the above default behaviors, you can use `overrideDefault`
+
+```typescript
+const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { alwaysWriteToConsole: true, consoleLogSectionSeparator: '' }});
+```
+
+### Override Default
+| Config                     | Purpose                                                                                                               |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| alwaysWriteToConsole       | always write to console, regardless of environment. useful for AWS Lambda                                             |
+| consoleLogSectionSeparator | override the default section separator character for console logs. the default is newline '\n'. useful for AWS Lambda |
+
+
+
 ---
 
 ### Instance methods

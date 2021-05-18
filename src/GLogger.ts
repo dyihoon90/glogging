@@ -30,7 +30,7 @@ export class GLogger {
         });
         this.logger.add(
           new transports.Console({
-            format: format.combine(format.printf(consoleMessageFormatter))
+            format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
           })
         );
         break;
@@ -42,7 +42,7 @@ export class GLogger {
         });
         this.logger.add(
           new transports.Console({
-            format: format.combine(format.printf(consoleMessageFormatter))
+            format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
           })
         );
         break;
@@ -53,6 +53,13 @@ export class GLogger {
           level: 'info',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
+        if (configs.overrideDefault?.alwaysWriteToConsole) {
+          this.logger.add(
+            new transports.Console({
+              format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
+            })
+          );
+        }
     }
   }
 
@@ -170,36 +177,51 @@ export class GLogger {
  * Depending on whether trxCategory is passed in, either logs out basicLog or enrichedLog
  * @param info
  */
-function consoleMessageFormatter(info: winston.Logform.TransformableInfo): string {
-  const { level, message, timestamp, additionalInfo, filename, ...data } = info as ICombinedLog;
-  const logString = `[${timestamp as string}][${level.toUpperCase()}]`;
-  const { trxCategory, trxId, trxModule, trxName, trxStatus, timeTakenInMillis, userToken } = data;
-  if (!trxCategory) {
-    const basicLog = logString
+const consoleMessageFormatterFactory = (config: IConfigs) => {
+  return (info: winston.Logform.TransformableInfo) => {
+    const sectionSeparator =
+      config.overrideDefault?.consoleLogSectionSeparator === '' || config.overrideDefault?.consoleLogSectionSeparator
+        ? config.overrideDefault?.consoleLogSectionSeparator
+        : '\n';
+
+    const { level, message, timestamp, additionalInfo, filename, ...data } = info as ICombinedLog;
+    const logString = `[${timestamp as string}][${level.toUpperCase()}]`;
+    const { trxCategory, trxId, trxModule, trxName, trxStatus, timeTakenInMillis, userToken } = data;
+    if (!trxCategory) {
+      const basicLog = logString
+        .concat(`[${message}][${data ? formatWithLinebreakAndIndent(data, config) : 'no data'}]`)
+        .concat(sectionSeparator)
+        .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo, config) : 'no additionalInfo'}]`)
+        .concat(sectionSeparator);
+      return basicLog;
+    }
+    const enrichedLog = logString
+      .concat(
+        `[${trxCategory}][${trxModule}][${trxId}][${trxName}][${trxStatus}][${
+          timeTakenInMillis?.toString() || 'time taken is not tracked'
+        }ms]`
+      )
       .concat(`[${message}]`)
-      .concat(`[${data ? formatWithLinebreakAndIndent(data) : 'no data'}]\n`)
-      .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
-    return basicLog;
-  }
-  const enrichedLog = logString
-    .concat(
-      `[${trxCategory}][${trxModule}][${trxId}][${trxName}][${trxStatus}][${
-        timeTakenInMillis?.toString() || 'time taken is not tracked'
-      }ms]`
-    )
-    .concat(`[${message}]\n`)
-    .concat(`[${userToken ? formatWithLinebreakAndIndent(userToken) : 'no user token'}]\n`)
-    .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo) : 'no additionalInfo'}]\n`);
-  return filename ? enrichedLog.concat(`[${filename}]`) : enrichedLog;
-}
+      .concat(sectionSeparator)
+      .concat(`[${userToken ? formatWithLinebreakAndIndent(userToken, config) : 'no user token'}]`)
+      .concat(sectionSeparator)
+      .concat(`[${additionalInfo ? formatWithLinebreakAndIndent(additionalInfo, config) : 'no additionalInfo'}]`)
+      .concat(sectionSeparator);
+    return filename ? enrichedLog.concat(`[${filename}]`) : enrichedLog;
+  };
+};
 
 const formatTimestamp = winston.format((info: Logform.TransformableInfo) => {
   info.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   return info;
 });
 
-function formatWithLinebreakAndIndent(obj: Record<string, any>): string {
-  return JSON.stringify(obj, null, 4)?.replace(/\\n/g, '\n');
+function formatWithLinebreakAndIndent(obj: Record<string, any>, config?: IConfigs): string {
+  const separator =
+    config?.overrideDefault?.consoleLogSectionSeparator === '' || config?.overrideDefault?.consoleLogSectionSeparator
+      ? config?.overrideDefault?.consoleLogSectionSeparator
+      : '\n';
+  return JSON.stringify(obj, null, 1)?.replace(/\\n/g, separator).replace(/\n/g, separator);
 }
 
 function logVerbose(level: string, message: string, data?: Record<string, any>, error?: Error) {

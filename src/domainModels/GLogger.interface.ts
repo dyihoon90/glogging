@@ -36,6 +36,11 @@ export interface ICombinedLog extends Logform.TransformableInfo, IBasicLogData, 
 
 export interface IConfigs {
   loggingMode: LoggingMode;
+  overrideDefault?: {
+    alwaysWriteToConsole?: boolean;
+    // default section separator is '\n'
+    consoleLogSectionSeparator?: string;
+  };
 }
 
 /**
@@ -54,5 +59,5 @@ export enum LoggingLevel {
   DEBUG,
   INFO,
   WARN,
-  ERROR,
+  ERROR
 }
