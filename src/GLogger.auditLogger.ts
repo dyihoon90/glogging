@@ -1,5 +1,4 @@
 import { Duration, Instant, ZonedDateTime } from '@js-joda/core';
-import _ from 'lodash';
 import {
   GLogger,
   IReqRes,
@@ -9,7 +8,6 @@ import {
   TransactionStatus,
   IReq,
   ITransactionLog,
-  IExpressRequest,
   IHTTPTransactionMetadata
 } from '.';
 
