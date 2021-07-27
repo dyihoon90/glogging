@@ -101,10 +101,17 @@ This library has the following express middlewares
 
 ---
 
-## Class, Method & Function decorators
+## Class, Method & Function decorators for Express services (Works out of the box for Express/Koa servers)
 
 ### Purpose
-Using the decorators, we can log applications functions we deem to be transactions, such as those making calls to external systems or databases
+
+With these decorators, you have standardized logging for certain transactional functions in your application. 
+
+For example, one of your routes invokes a function that makes a call to persist an item in your a DB, then returns results from those systems. 
+
+You can decorate the function that makes that DB call to get a rich view of that function invocation, including which Express route your user called that invoked this function, the transaction ID, some details of the user that made the request (if available in the request), and results/errors
+
+ Works out of the box for decorating functions in an Express / Koa server.
 
 ---
 ### Metadata
@@ -133,7 +140,7 @@ Decorator will log functions with the following metadata:
 
 ---
 
-### Decorators
+### Decorators (Works out of the box for Express/Koa servers)
 
 This library has the following class, class method, & function decorators
 
