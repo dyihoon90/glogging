@@ -13,7 +13,10 @@ const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
  * if loggingMode is not provided, defaults to LoggingMode.PRODUCTION
  */
 export class GLogger {
-  private logger: Logger;
+  /**
+   * exposes the underlying winston logger to library users
+   */
+  public winstonLogger: Logger;
   private verboseMode = false;
   private loggingMode: LoggingMode = LoggingMode.PRODUCTION;
   private loggingLevel: LoggingLevel = LoggingLevel.INFO;
@@ -24,11 +27,11 @@ export class GLogger {
     switch (this.loggingMode) {
       case LoggingMode.LOCAL:
         this.loggingLevel = LoggingLevel.DEBUG;
-        this.logger = winston.createLogger({
+        this.winstonLogger = winston.createLogger({
           level: 'debug',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
-        this.logger.add(
+        this.winstonLogger.add(
           new transports.Console({
             format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
           })
@@ -36,11 +39,11 @@ export class GLogger {
         break;
       case LoggingMode.DEV:
         this.loggingLevel = LoggingLevel.INFO;
-        this.logger = winston.createLogger({
+        this.winstonLogger = winston.createLogger({
           level: 'info',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
-        this.logger.add(
+        this.winstonLogger.add(
           new transports.Console({
             format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
           })
@@ -49,12 +52,12 @@ export class GLogger {
       case LoggingMode.PRODUCTION:
       default:
         this.loggingLevel = LoggingLevel.INFO;
-        this.logger = winston.createLogger({
+        this.winstonLogger = winston.createLogger({
           level: 'info',
           format: format.combine(formatTimestamp(), sensitiveDataRedacter)
         });
         if (configs.overrideDefault?.alwaysWriteToConsole) {
-          this.logger.add(
+          this.winstonLogger.add(
             new transports.Console({
               format: format.combine(format.printf(consoleMessageFormatterFactory(configs)))
             })
@@ -72,7 +75,7 @@ export class GLogger {
    * @param transport a winston-transport Log Transport instance
    */
   addLogTransport(transport: Transport): this {
-    this.logger.add(transport);
+    this.winstonLogger.add(transport);
     return this;
   }
 
@@ -91,7 +94,7 @@ export class GLogger {
       logVerbose('debug', message, data);
     }
     if (this.loggingLevel <= LoggingLevel.DEBUG) {
-      this.logger.debug(message, data);
+      this.winstonLogger.debug(message, data);
     }
     return this;
   }
@@ -111,7 +114,7 @@ export class GLogger {
       logVerbose('info', message, data);
     }
     if (this.loggingLevel <= LoggingLevel.INFO) {
-      this.logger.info(message, data);
+      this.winstonLogger.info(message, data);
     }
     return this;
   }
@@ -139,7 +142,7 @@ export class GLogger {
       };
     }
     if (this.loggingLevel <= LoggingLevel.WARN) {
-      this.logger.warn(message, dataToLog);
+      this.winstonLogger.warn(message, dataToLog);
     }
     return this;
   }
@@ -166,7 +169,7 @@ export class GLogger {
       };
     }
     if (this.loggingLevel <= LoggingLevel.ERROR) {
-      this.logger.error(message, dataToLog);
+      this.winstonLogger.error(message, dataToLog);
     }
     return this;
   }
