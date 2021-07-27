@@ -3,6 +3,24 @@
 
 # Audit logger for Express requests and Transactions
 
+## Table of Content
+- [Audit logger for Express requests and Transactions](#audit-logger-for-express-requests-and-transactions)
+  - [Table of Content](#table-of-content)
+    - [Installation](#installation)
+    - [Description](#description)
+  - [GLogger](#glogger)
+    - [Constructor](#constructor)
+    - [Override default configs](#override-default-configs)
+    - [Instance methods](#instance-methods)
+    - [Instance properties](#instance-properties)
+  - [Express middlewares](#express-middlewares)
+    - [Middlewares](#middlewares)
+  - [Class, Method & Function decorators for Express services (Works out of the box for Express/Koa servers)](#class-method--function-decorators-for-express-services-works-out-of-the-box-for-expresskoa-servers)
+    - [Purpose](#purpose)
+    - [Metadata](#metadata)
+    - [Decorators (Works out of the box for Express/Koa servers)](#decorators-works-out-of-the-box-for-expresskoa-servers)
+  - [Examples](#examples)
+
 ### Installation
 
 `npm i @dyihoon90/glogging`
@@ -24,7 +42,7 @@ This library includes the following:
 
 A glogger instance uses the `winston` logger library under the hood.
 
-### constructor
+### Constructor
 
 ```typescript
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
@@ -32,23 +50,20 @@ const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 
 When constructing an instance, there are 3 modes:
 
-#### LOCAL
-- defaults to have transport for console.
-- Log level up to debug
-#### DEV
-- Defaults to have transport for console.
-- Log level up to info
-#### PRODUCTION
-- Defaults to have no transport at all. Use glogger.addTransport to add a winston log transport
-- Log level up to info
+| Mode       | Description                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| LOCAL      | <ul><li>defaults to have transport for console.</li><li>Log level up to debug</li></ul>                                                |
+| DEV        | <ul><li>defaults to have transport for console.</li><li>Log level up to info</li></ul>                                                 |
+| PRODUCTION | <ul><li>defaults to have no transport. Use glogger.addTransport to add a winston log transport.</li><li>Log level up to info</li></ul> |
 
-To override the above default behaviors, you can use `overrideDefault`
+
+To override the default behaviors for each Mode above, you can use `overrideDefault`
 
 ```typescript
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { alwaysWriteToConsole: true, consoleLogSectionSeparator: '' }});
 ```
 
-### Override Default
+### Override default configs
 | Config                     | Purpose                                                                                                               |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | alwaysWriteToConsole       | always write to console, regardless of environment. useful for AWS Lambda                                             |
@@ -68,6 +83,11 @@ const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { 
 | toggleVerboseModeOn | toggle debug mode to see what is being sent to the above log methods |
 | addLogTransport     | add a winston log transport to transport the log object              |
 
+### Instance properties
+| Property      | Purpose                                     |
+| ------------- | ------------------------------------------- |
+| winstonLogger | Expose the underlying winston logger object |
+
 ---
 
 ## Express middlewares
@@ -78,7 +98,7 @@ Express middleware will log all request and response with the following metadata
 | trxId                     | Transaction ID             | A randomly generated uuidv4 added to the request by the `enhanceReqWithTransactionAndTime` middleware. If using multiple microservices, can pass the ID on for tracking requests                                               | 'e6c0ea38-f459-4f84-a9b6-873255e95896' |
 | trxModule                 | Transaction Module         | The transaction module                                                                                                                                                                                                         | 'DWP'                                  |
 | trxName                   | Transaction Name           | The transaction name                                                                                                                                                                                                           | 'HRP'                                  |
-| userToken                 | User Token                 | If request.user is filled, this will log out the field. The purpose is to be able to identify the user that made the call, for better ops support                                                                              |
+| userToken                 | User Token                 | If request.user is filled, this will log out the field. The purpose is to be able to identify the user that made the call, for better ops support                                                                              |                                        |
 | timeTakenInMillis         | Time Taken in Milliseconds | The time the request took from request received to response sent                                                                                                                                                               | 61877                                  |
 | trxStatus                 | Transaction Status         | Transaction success is defined by a <400 status code. Transaction failure is defined by the error logger receiving an error object propagated down by previous middleware calling the express next() function with next(error) | 'SUCCESS' / 'FAILURE'                  |
 | additionalInfo.url        | URL                        | The full URL path                                                                                                                                                                                                              | '/list?types[]=leave'                  |
@@ -130,7 +150,7 @@ Decorator will log functions with the following metadata:
 | trxModule             | Transaction Module         | The transaction module                                                                                                                                                                   | 'User'                                               |
 | trxName               | Transaction Name           | This will be the name of the decorated function                                                                                                                                          | 'getUserList'                                        |
 | fileName              | File Name                  | The name of the file                                                                                                                                                                     | 'services/user.service.ts'                           |
-| userToken             | User Token                 | If request.user is filled, this will log out the field. The purpose is to be able to identify the user that made the call, for better ops support                                        |
+| userToken             | User Token                 | If request.user is filled, this will log out the field. The purpose is to be able to identify the user that made the call, for better ops support                                        |                                                      |
 | timeTakenInMillis     | Time Taken in Milliseconds | The time the request took from request received to response sent                                                                                                                         | 61877                                                |
 | trxStatus             | Transaction Status         | Transaction success is defined by function successful execution, or returning a resolved promise. Transaction failure is defined function throwing or returning a rejected promise.      | 'SUCCESS' / 'FAILURE'                                |
 | additionalInfo.url    | URL                        | The full URL path                                                                                                                                                                        | '/list?types[]=leave'                                |
