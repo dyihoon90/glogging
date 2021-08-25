@@ -14,11 +14,10 @@
     - [Instance methods](#instance-methods)
     - [Instance properties](#instance-properties)
   - [Express middlewares](#express-middlewares)
-    - [Middlewares](#middlewares)
   - [Class, Method & Function decorators for Express services (Works out of the box for Express/Koa servers)](#class-method--function-decorators-for-express-services-works-out-of-the-box-for-expresskoa-servers)
     - [Purpose](#purpose)
     - [Metadata](#metadata)
-    - [Decorators (Works out of the box for Express/Koa servers)](#decorators-works-out-of-the-box-for-expresskoa-servers)
+    - [Decorators](#decorators)
   - [Examples](#examples)
 
 ### Installation
@@ -26,21 +25,31 @@
 `npm i @dyihoon90/glogging`
 
 ### Description
+Glogger is a wrapper around the popular `winston` logging library.
 
-This library builds on winston to provide a GLogger class to do logging for:
+This library provide convenience methods for the following use cases:
 
-1. Normal logging
-2. HTTP requests in express
-3. Logging for transactions to external systems
+1. Structured logging
+2. Logging request & response using Express middleware
+3. Logging using decorators in functions, class & class methods 
 
+By using this library in an Express server, you get:
+
+| Benefits                                                       | Using?                                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Redaction of sensitive data in SG context                      | Automatically redacts NRIC & sensitive info                                                                                                                                                                                                                                           |
+| Standardized log format                                        | The standard `logger.info()`                                                                                                                                                                                                                                                          |
+| Standardized request & response logging for Express servers    | Adding the [Glogger Express middlewares](#express-middlewares) will automatically generate logs for incoming requests & outgoing responses                                                                                                                                            |
+| Unobtrusive logging for functions, class, & class method       | Decorate functions & class methods using [decorators](#decorators) will log the function invocation. Optionally it can also log what the function returns                                                                                                                             |
+| Correlate function invocations in Express server using `trxId` | Use the `enhanceReqWithTransactionAndTime` in [Middleware](#express-middlewares) to add `trxId` to incoming request. <br/>Pass the request object to as the **first parameter** in all decorated function & Glogger decorators will pick up the request context, such as the `trxId`. |
+| Correlate requests across microservices using `trxId`          | Use the `enhanceReqWithTransactionAndTime` in [Middleware](#express-middlewares) to add `trxId` to incoming request.<br/>Pass this `trxId` to other Express servers that are using Glogger & they will output logs w the same `trxId`                                                 |
 
 
 ---
-This library includes the following:
 
 ## GLogger
 
-A glogger instance uses the `winston` logger library under the hood.
+Construct an instance of a logger. Similar to how winston does it.
 
 ### Constructor
 
@@ -48,7 +57,7 @@ A glogger instance uses the `winston` logger library under the hood.
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 ```
 
-When constructing an instance, there are 3 modes:
+When constructing a logger instance, there are 3 modes for different environments
 
 | Mode       | Description                                                                                                                            |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -88,11 +97,23 @@ const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { 
 | ------------- | ------------------------------------------- |
 | winstonLogger | Expose the underlying winston logger object |
 
+
 ---
+
 
 ## Express middlewares
 
-Express middleware will log all request and response with the following metadata:
+This library exports the following express middlewares.
+See the [middlware examples](examples/middleware.example.ts) for how to place these middleware in your Express server
+
+| Middleware                       | Purpose                                                                                                                                                  |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| enhanceReqWithTransactionAndTime | enhance request with req.reqStartTimeInEpochMillis & req.uuid (if req.uuid does not already exist)                                                       |
+| responseErrorLoggerFactory       | factory to create an error logger middleware. Error logger middleware does a `logger.warn` when it receives an error object from the previous middleware |
+| responseSuccessLoggerFactory     | factory to create a successs logger middleware. Success logger middleware does a `logger.info` when the response status code is < 400                    |
+
+
+Express middleware will log all incoming request and outgoing response of your Express server with the following metadata:
 | Metadata                  | Full Name                  | What is it?                                                                                                                                                                                                                    | Example                                |
 | ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
 | trxId                     | Transaction ID             | A randomly generated uuidv4 added to the request by the `enhanceReqWithTransactionAndTime` middleware. If using multiple microservices, can pass the ID on for tracking requests                                               | 'e6c0ea38-f459-4f84-a9b6-873255e95896' |
@@ -107,25 +128,12 @@ Express middleware will log all request and response with the following metadata
 | additionalInfo.statusCode | Status Code                | The HTTP status code returned to the client                                                                                                                                                                                    | 200                                    |
 | additionalInfo.error      | Error                      | The error passed to the error logger middleware, only when status is 'FAILURE'                                                                                                                                                 | 'new Error('error')'                   |
 
----
-
-### Middlewares
-
-This library has the following express middlewares
-
-| Middleware                       | Purpose                                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| enhanceReqWithTransactionAndTime | enhance request with req.reqStartTimeInEpochMillis & req.uuid (if req.uuid does not already exist) |
-| responseErrorLoggerFactory       | factory to create an error logger middleware. See middleware.example.ts for how to use it          |
-| responseSuccessLoggerFactory     | factory to create a successs logger middleware. See middleware.example.ts for how to use it        |
-
----
 
 ## Class, Method & Function decorators for Express services (Works out of the box for Express/Koa servers)
 
 ### Purpose
 
-With these decorators, you have standardized logging for certain transactional functions in your application. 
+Glogger decorators give you standardized logging for functions in your application. 
 
 For example, one of your routes invokes a function that makes a call to persist an item in your a DB, then returns results from those systems. 
 
@@ -160,9 +168,11 @@ Decorator will log functions with the following metadata:
 
 ---
 
-### Decorators (Works out of the box for Express/Koa servers)
+### Decorators
 
-This library has the following class, class method, & function decorators
+Glogger decorators allow users to log functions & class method invocations in a standardized way w/o littering `logger.info()` all over your functions. This makes your code cleaner and easier to read.
+
+This library exports the following decorators.
 
 | Decorator Factory | Purpose                                         |
 | ----------------- | ----------------------------------------------- |
