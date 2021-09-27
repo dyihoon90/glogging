@@ -3,6 +3,10 @@
   "verbose": true,
   "setupFiles": [],
   "testTimeout": 10000,
+  "preset": "ts-jest",
+  "transform": {
+    "^.+\\.ts?$": "ts-jest"
+  },
   "testMatch": ["**/__tests__/**/*.test.[jt]s?(x)"],
   "reporters": [
     "default",
