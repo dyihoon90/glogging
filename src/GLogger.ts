@@ -3,7 +3,8 @@ import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';
 import { ICombinedLog, IConfigs, LoggingLevel, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
-import { traverseObject } from './utils/ObjUtils';
+import { traverseAndMutateObject } from './utils/ObjUtils';
+import cloneDeep from 'lodash/cloneDeep';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -238,26 +239,23 @@ function logVerbose(level: string, message: string, data?: Record<string, any>, 
 }
 
 const sensitiveDataRedacter = winston.format((info) => {
-  traverseObject(info, redactSensitiveValue);
-  return info;
+  const clonedInfo = cloneDeep(info);
+  traverseAndMutateObject(clonedInfo, redactSensitiveValue);
+  return clonedInfo;
 })();
 
 /**
- * redacts all sensitive values
+ * Redacts all sensitive values
  * @param key property key of the object
  * @param value value of the object's property
  */
 function redactSensitiveValue(key: string, value: string): string {
-  if (typeof value !== 'string') {
-    return value;
-  }
-  const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
-  // const emailRegex = /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
-  if (typeof value === 'string' && nricRegex.test(value)) {
-    return '*****' + value.substring(5);
-  }
   if (isSecret.key(key) || isSecret.value(value)) {
     return '[REDACTED]';
+  }
+  const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
+  if (typeof value === 'string' && nricRegex.test(value)) {
+    return '*****' + value.substring(5);
   }
   return value;
 }

@@ -1,12 +1,24 @@
-import _ from 'lodash';
+import clone from 'lodash/clone';
 
-export function traverseObject(obj: Record<string | number | symbol, any>, callback: (key: string, value: any) => any) {
+/**
+ * Traverse the object deeply, calling callback on all properties that are not object
+ * Arrays and objects are both considered object
+ * Note: Mutates the obj passed in
+ * @param obj
+ * @param callback
+ * @returns
+ */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function traverseAndMutateObject(
+  obj: Record<string | number | symbol, any>,
+  callback: (key: string, value: any) => any
+) {
   if (!obj) {
     return obj;
   }
   Object.keys(obj).forEach((key) => {
     if (typeof obj[key] === 'object') {
-      obj[key] = traverseObject(obj[key], callback);
+      obj[key] = traverseAndMutateObject(obj[key], callback);
     } else {
       obj[key] = callback(key, obj[key]);
     }
@@ -24,7 +36,7 @@ export function redactProperties<T extends Record<string | number | symbol, any>
   redactedProperties: Array<string | number | symbol>,
   obj: T
 ): T {
-  const clonedObj = _.clone(obj);
+  const clonedObj = clone(obj);
   if (!redactedProperties || redactProperties.length === 0 || !obj) {
     return clonedObj;
   }

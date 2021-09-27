@@ -41,6 +41,24 @@ describe('Test GLogger', () => {
         );
       });
     });
+    describe('When values have been redacted', () => {
+      it('should not mutate object that was passed in', () => {
+        const objectToBeRedacted = { secret: 123, layer1: { nric: 'T1234567Z' } };
+
+        logger.info('msg', objectToBeRedacted);
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            secret: '[REDACTED]',
+            layer1: { nric: '*****567Z' },
+            level: 'info',
+            message: 'msg'
+          })
+        );
+        expect(objectToBeRedacted.layer1.nric).toEqual('T1234567Z');
+        expect(objectToBeRedacted.secret).toEqual(123);
+      });
+    });
   });
   describe('Test Debug log', () => {
     test('should call transport in the correct format', () => {
