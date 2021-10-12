@@ -41,6 +41,33 @@ describe('Test GLogger', () => {
         );
       });
     });
+    describe('When key contains nric && value is an array', () => {
+      it('should be redacted', () => {
+        logger.info('msg', { myUsersNRICs: ['T1234567Z', 'S1234567Y'] });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            myUsersNRICs: '[REDACTED DUE TO NRIC OR UINFIN KEY]',
+            level: 'info',
+            message: 'msg'
+          })
+        );
+      });
+    });
+    describe('When key contains uinfin && value is an array', () => {
+      it('should be redacted', () => {
+        logger.info('msg', { uinfinsOfUsers: ['T1234567Z', 'S1234567Y'] });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            uinfinsOfUsers: '[REDACTED DUE TO NRIC OR UINFIN KEY]',
+            level: 'info',
+            message: 'msg'
+          })
+        );
+      });
+    });
+
     describe('When values have been redacted', () => {
       it('should not mutate object that was passed in', () => {
         const objectToBeRedacted = { secret: 123, layer1: { nric: 'T1234567Z' } };

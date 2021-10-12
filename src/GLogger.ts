@@ -4,7 +4,7 @@ import * as Transport from 'winston-transport';
 import { ICombinedLog, IConfigs, LoggingLevel, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import { traverseAndMutateObject } from './utils/ObjUtils';
-import cloneDeep from 'lodash/cloneDeep';
+import { cloneDeep, includes, isArray } from 'lodash';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -249,13 +249,18 @@ const sensitiveDataRedacter = winston.format((info) => {
  * @param key property key of the object
  * @param value value of the object's property
  */
-function redactSensitiveValue(key: string, value: string): string {
-  if (isSecret.key(key) || isSecret.value(value)) {
+function redactSensitiveValue<T>(key: string, value: T): T | string {
+  if (isSecret.key(key) || (typeof value === 'string' && isSecret.value(value))) {
     return '[REDACTED]';
   }
-  const nricRegex = /[a-zA-Z]\d{7}[a-zA-Z]/i;
+  const nricRegex = /^([a-z]\d{7}[a-z])$/i;
   if (typeof value === 'string' && nricRegex.test(value)) {
     return '*****' + value.substring(5);
+  }
+  // for cases of array of nrics or uinfin, we redact the entire property
+  const nricKeyRegex = /(nric|uinfin)/i;
+  if (nricKeyRegex.test(key) && isArray(value)) {
+    return '[REDACTED DUE TO NRIC OR UINFIN KEY]';
   }
   return value;
 }

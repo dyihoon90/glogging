@@ -1,4 +1,4 @@
-import clone from 'lodash/clone';
+import { clone, forIn, isPlainObject } from 'lodash';
 
 /**
  * Traverse the object deeply, calling callback on all properties that are not object
@@ -9,18 +9,15 @@ import clone from 'lodash/clone';
  * @returns
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function traverseAndMutateObject(
-  obj: Record<string | number | symbol, any>,
-  callback: (key: string, value: any) => any
-) {
+export function traverseAndMutateObject(obj: Record<string | symbol, any>, callback: (key: string, value: any) => any) {
   if (!obj) {
     return obj;
   }
-  Object.keys(obj).forEach((key) => {
-    if (typeof obj[key] === 'object') {
-      obj[key] = traverseAndMutateObject(obj[key], callback);
+  forIn(obj, (value, key) => {
+    if (isPlainObject(value)) {
+      obj[key] = traverseAndMutateObject(value, callback);
     } else {
-      obj[key] = callback(key, obj[key]);
+      obj[key] = callback(key, value);
     }
   });
   return obj;

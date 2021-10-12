@@ -1,4 +1,4 @@
-import { redactProperties } from '../src/utils/ObjUtils';
+import { redactProperties, traverseAndMutateObject } from '../src/utils/ObjUtils';
 
 describe('redactProperties', () => {
   describe('When empty array of properties is passed in', () => {
@@ -80,6 +80,25 @@ describe('redactProperties', () => {
       const redacted = redactProperties(propsToRedact, obj);
 
       expect(redacted).toEqual(obj);
+    });
+  });
+});
+describe('traverseAndMutateObject', () => {
+  describe('When property is an object', () => {
+    it('should not invoke callback function for the property', () => {
+      const fn = jest.fn();
+      const objProp = { b: 'c' };
+      traverseAndMutateObject({ a: objProp }, fn);
+      expect(fn).toHaveBeenCalledWith('b', 'c');
+      expect(fn).not.toHaveBeenCalledWith('a', objProp);
+    });
+  });
+  describe('When property is an array', () => {
+    it('should not callback function for the property', () => {
+      const fn = jest.fn();
+      const arrProp = ['x', 'y'];
+      traverseAndMutateObject({ a: arrProp }, fn);
+      expect(fn).toHaveBeenCalledWith('a', arrProp);
     });
   });
 });
