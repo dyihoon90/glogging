@@ -4,7 +4,8 @@ import * as Transport from 'winston-transport';
 import { ICombinedLog, IConfigs, LoggingLevel, LoggingMode } from './domainModels/GLogger.interface';
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import { traverseAndMutateObject } from './utils/ObjUtils';
-import { cloneDeep, includes, isArray } from 'lodash';
+import { cloneDeep, isArray } from 'lodash';
+import { stringify } from 'flatted';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -220,12 +221,16 @@ const formatTimestamp = winston.format((info: Logform.TransformableInfo) => {
   return info;
 });
 
-function formatWithLinebreakAndIndent(obj: Record<string, any>, config?: IConfigs): string {
-  const separator =
-    config?.overrideDefault?.consoleLogSectionSeparator === '' || config?.overrideDefault?.consoleLogSectionSeparator
-      ? config?.overrideDefault?.consoleLogSectionSeparator
-      : '\n';
-  return JSON.stringify(obj, null, 1)?.replace(/\\n/g, separator).replace(/\n/g, separator);
+function formatWithLinebreakAndIndent<T>(obj: T, config?: IConfigs): string {
+  try {
+    const separator =
+      config?.overrideDefault?.consoleLogSectionSeparator === '' || config?.overrideDefault?.consoleLogSectionSeparator
+        ? config?.overrideDefault?.consoleLogSectionSeparator
+        : '\n';
+    return stringify(obj, null, 1)?.replace(/\\n/g, separator).replace(/\n/g, separator);
+  } catch (e) {
+    return 'Object cannot be stringified.';
+  }
 }
 
 function logVerbose(level: string, message: string, data?: Record<string, any>, error?: Error) {
