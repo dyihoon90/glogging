@@ -1,6 +1,6 @@
 import { format } from 'winston';
 import { transports } from 'winston';
-import { GLogger, LoggingMode } from '../src';
+import { __test__, GLogger, LoggingMode } from '../src';
 
 describe('Test GLogger', () => {
   let mockFn: () => any;
@@ -193,6 +193,21 @@ describe('Test GLogger', () => {
       testLogger.debug('msg');
 
       expect(mockFn).not.toHaveBeenCalledWith(expect.objectContaining({ level: 'debug', message: 'msg' }));
+    });
+  });
+  describe('Test circular object in logs', () => {
+    it('should log successfully without throwing error', () => {
+      const circularObj: { circularRef?: any; list?: any } = {};
+      circularObj.circularRef = circularObj;
+      circularObj.list = [circularObj, circularObj];
+      const circularStr = __test__.formatWithLinebreakAndIndent(circularObj);
+      expect(circularStr).toEqual(`{
+ "circularRef": "[Circular ~]",
+ "list": [
+  "[Circular ~]",
+  "[Circular ~]"
+ ]
+}`);
     });
   });
 });

@@ -5,7 +5,7 @@ import { ICombinedLog, IConfigs, LoggingLevel, LoggingMode } from './domainModel
 import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import { traverseAndMutateObject } from './utils/ObjUtils';
 import { cloneDeep, isArray } from 'lodash';
-import { stringify } from 'flatted';
+import stringify from 'json-stringify-safe';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -269,3 +269,8 @@ function redactSensitiveValue<T>(key: string, value: T): T | string {
   }
   return value;
 }
+
+// eslint-disable-next-line no-underscore-dangle
+export const __test__ = {
+  formatWithLinebreakAndIndent
+};
