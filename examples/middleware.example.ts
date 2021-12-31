@@ -11,8 +11,8 @@ import {
 const logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
 
 ////#region HTTP logger express middleware
-const successLogger = responseSuccessLoggerFactory(logger, 'DWP', 'HRP', __filename);
-const errorLogger = responseErrorLoggerFactory(logger, 'DWP', 'HRP', __filename, false);
+const successLogger = responseSuccessLoggerFactory(logger, 'MODULE', 'SUBMODULE', __filename);
+const errorLogger = responseErrorLoggerFactory(logger, 'MODULE', 'SUBMODULE', __filename, false);
 
 const server = express();
 

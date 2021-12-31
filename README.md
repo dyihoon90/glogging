@@ -4,6 +4,7 @@
 # Audit logger for Express requests and Transactions
 
 ## Table of Content
+
 - [Audit logger for Express requests and Transactions](#audit-logger-for-express-requests-and-transactions)
   - [Table of Content](#table-of-content)
     - [Installation](#installation)
@@ -25,13 +26,14 @@
 `npm i @dyihoon90/glogging`
 
 ### Description
+
 Glogger is a wrapper around the popular `winston` logging library.
 
 This library provide convenience methods for the following use cases:
 
 1. Structured logging
 2. Logging request & response using Express middleware
-3. Logging using decorators in functions, class & class methods 
+3. Logging using decorators in functions, class & class methods
 
 By using this library in an Express server, you get:
 
@@ -43,7 +45,6 @@ By using this library in an Express server, you get:
 | Unobtrusive logging for functions, class, & class method       | Decorate functions & class methods using [decorators](#decorators) will log the function invocation. Optionally it can also log what the function returns                                                                                                                             |
 | Correlate function invocations in Express server using `trxId` | Use the `enhanceReqWithTransactionAndTime` in [Middleware](#express-middlewares) to add `trxId` to incoming request. <br/>Pass the request object to as the **first parameter** in all decorated function & Glogger decorators will pick up the request context, such as the `trxId`. |
 | Correlate requests across microservices using `trxId`          | Use the `enhanceReqWithTransactionAndTime` in [Middleware](#express-middlewares) to add `trxId` to incoming request.<br/>Pass this `trxId` to other Express servers that are using Glogger & they will output logs w the same `trxId`                                                 |
-
 
 ---
 
@@ -65,24 +66,26 @@ When constructing a logger instance, there are 3 modes for different environment
 | DEV        | <ul><li>defaults to have transport for console.</li><li>Log level up to info</li></ul>                                                 |
 | PRODUCTION | <ul><li>defaults to have no transport. Use glogger.addTransport to add a winston log transport.</li><li>Log level up to info</li></ul> |
 
-
 To override the default behaviors for each Mode above, you can use `overrideDefault`
 
 ```typescript
-const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { alwaysWriteToConsole: true, consoleLogSectionSeparator: '' }});
+const logger = new GLogger({
+  loggingMode: LoggingMode.LOCAL,
+  overrideDefault: { alwaysWriteToConsole: true, consoleLogSectionSeparator: '' }
+});
 ```
 
 ### Override default configs
+
 | Config                     | Purpose                                                                                                               |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | alwaysWriteToConsole       | always write to console, regardless of environment. useful for AWS Lambda                                             |
 | consoleLogSectionSeparator | override the default section separator character for console logs. the default is newline '\n'. useful for AWS Lambda |
 
-
-
 ---
 
 ### Instance methods
+
 | Method              | Purpose                                                              |
 | ------------------- | -------------------------------------------------------------------- |
 | debug               | create log object of level debug                                     |
@@ -93,13 +96,12 @@ const logger = new GLogger({ loggingMode: LoggingMode.LOCAL, overrideDefault: { 
 | addLogTransport     | add a winston log transport to transport the log object              |
 
 ### Instance properties
+
 | Property      | Purpose                                     |
 | ------------- | ------------------------------------------- |
 | winstonLogger | Expose the underlying winston logger object |
 
-
 ---
-
 
 ## Express middlewares
 
@@ -112,43 +114,40 @@ See the [middlware examples](examples/middleware.example.ts) for how to place th
 | responseErrorLoggerFactory       | factory to create an error logger middleware. Error logger middleware does a `logger.warn` when it receives an error object from the previous middleware |
 | responseSuccessLoggerFactory     | factory to create a successs logger middleware. Success logger middleware does a `logger.info` when the response status code is < 400                    |
 
-
 Express middleware will log all incoming request and outgoing response of your Express server with the following metadata:
-| Metadata                  | Full Name                  | What is it?                                                                                                                                                                                                                    | Example                                                                                             |
+| Metadata | Full Name | What is it? | Example |
 | ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| trxId                     | Transaction ID             | A randomly generated uuidv4 added to the request by the `enhanceReqWithTransactionAndTime` middleware. If using multiple microservices, can pass the ID on for tracking requests                                               | 'e6c0ea38-f459-4f84-a9b6-873255e95896'                                                              |
-| trxModule                 | Transaction Module         | The transaction module                                                                                                                                                                                                         | 'DWP'                                                                                               |
-| trxName                   | Transaction Name           | The transaction name                                                                                                                                                                                                           | 'HRP'                                                                                               |
-| userToken                 | User Token                 | This is the JWT of the user. You are required to manually set the decoded JWT under the  'user' property of the Express request.                                                                                               | `{ "iss": "issuer", "sub": "subject", "aud": "audience", "jti": "tokenid", "exp": 123, "iat": 456}` |                                        
-| timeTakenInMillis         | Time Taken in Milliseconds | The time the request took from request received to response sent                                                                                                                                                               | 61877                                                                                               |
-| trxStatus                 | Transaction Status         | Transaction success is defined by a <400 status code. Transaction failure is defined by the error logger receiving an error object propagated down by previous middleware calling the express next() function with next(error) | 'SUCCESS' / 'FAILURE'                                                                               |
-| additionalInfo.url        | URL                        | The full URL path                                                                                                                                                                                                              | '/list?types[]=leave'                                                                               |
-| additionalInfo.method     | Method                     | The HTTP method                                                                                                                                                                                                                | 'GET'                                                                                               |
-| additionalInfo.srcIp      | Source IP                  | The source IP of the call. Uses express.request.ip. See [here](https://expressjs.com/en/api.html#trust.proxy.options.table) for more details of how the app setting `trust proxy` in express affects the source IP             | 127.0.0.1                                                                                           |
-| additionalInfo.statusCode | Status Code                | The HTTP status code returned to the client                                                                                                                                                                                    | 200                                                                                                 |
-| additionalInfo.error      | Error                      | The error passed to the error logger middleware, only when status is 'FAILURE'                                                                                                                                                 | 'new Error('error')'                                                                                |
-
+| trxId | Transaction ID | A randomly generated uuidv4 added to the request by the `enhanceReqWithTransactionAndTime` middleware. If using multiple microservices, can pass the ID on for tracking requests | 'e6c0ea38-f459-4f84-a9b6-873255e95896' |
+| trxModule | Transaction Module | The transaction module | 'TxnMod1' |
+| trxName | Transaction Name | The transaction name | 'TxnMod2' |
+| userToken | User Token | This is the JWT of the user. You are required to manually set the decoded JWT under the 'user' property of the Express request. | `{ "iss": "issuer", "sub": "subject", "aud": "audience", "jti": "tokenid", "exp": 123, "iat": 456}` |  
+| timeTakenInMillis | Time Taken in Milliseconds | The time the request took from request received to response sent | 61877 |
+| trxStatus | Transaction Status | Transaction success is defined by a <400 status code. Transaction failure is defined by the error logger receiving an error object propagated down by previous middleware calling the express next() function with next(error) | 'SUCCESS' / 'FAILURE' |
+| additionalInfo.url | URL | The full URL path | '/list?types[]=leave' |
+| additionalInfo.method | Method | The HTTP method | 'GET' |
+| additionalInfo.srcIp | Source IP | The source IP of the call. Uses express.request.ip. See [here](https://expressjs.com/en/api.html#trust.proxy.options.table) for more details of how the app setting `trust proxy` in express affects the source IP | 127.0.0.1 |
+| additionalInfo.statusCode | Status Code | The HTTP status code returned to the client | 200 |
+| additionalInfo.error | Error | The error passed to the error logger middleware, only when status is 'FAILURE' | 'new Error('error')' |
 
 ## Class, Method & Function decorators for Express services (Works out of the box for Express/Koa servers)
 
 ### Purpose
 
-Glogger decorators give you standardized logging for functions in your application. 
+Glogger decorators give you standardized logging for functions in your application.
 
-For example, one of your routes invokes a function that makes a call to persist an item in your a DB, then returns results from those systems. 
+For example, one of your routes invokes a function that makes a call to persist an item in your a DB, then returns results from those systems.
 
 You can decorate the function that makes that DB call to get a rich view of that function invocation, including which Express route your user called that invoked this function, the transaction ID, some details of the user that made the request (if available in the request), and results/errors
 
- Works out of the box for decorating functions in an Express / Koa server.
+Works out of the box for decorating functions in an Express / Koa server.
 
 ---
+
 ### Metadata
 
 All functions being logged must take in an `IExpressRequest` object as its first parameter, even if the function itself doesn't require it.
 
-
 You need to use the `enhanceReqWithTransactionAndTime` above for `trxId` & `timeTakenInMillis` to work.
-
 
 Decorator will log functions with the following metadata:
 
@@ -158,7 +157,7 @@ Decorator will log functions with the following metadata:
 | trxModule             | Transaction Module | The transaction module                                                                                                                                                                   | 'User'                                                                                              |
 | trxName               | Transaction Name   | This will be the name of the decorated function                                                                                                                                          | 'getUserList'                                                                                       |
 | fileName              | File Name          | The name of the file                                                                                                                                                                     | 'services/user.service.ts'                                                                          |
-| userToken             | User Token         | This is the JWT of the user. You are required to manually set the decoded JWT under the  'user' property of the Express request.                                                         | `{ "iss": "issuer", "sub": "subject", "aud": "audience", "jti": "tokenid", "exp": 123, "iat": 456}` | | timeTakenInMillis     | Time Taken in Milliseconds | The time the request took from request received to response sent                                                                                                                         | 61877                                                
+| userToken             | User Token         | This is the JWT of the user. You are required to manually set the decoded JWT under the 'user' property of the Express request.                                                          | `{ "iss": "issuer", "sub": "subject", "aud": "audience", "jti": "tokenid", "exp": 123, "iat": 456}` |  | timeTakenInMillis | Time Taken in Milliseconds | The time the request took from request received to response sent | 61877 |
 | trxStatus             | Transaction Status | Transaction success is defined by function successful execution, or returning a resolved promise. Transaction failure is defined function throwing or returning a rejected promise.      | 'SUCCESS' / 'FAILURE'                                                                               |
 | additionalInfo.url    | URL                | The full URL path                                                                                                                                                                        | '/list?types[]=leave'                                                                               |
 | additionalInfo.method | Method             | The HTTP method                                                                                                                                                                          | 'GET'                                                                                               |
@@ -198,6 +197,7 @@ All the above are decorator factories. In order to create the decorator, they ta
 See examples folder for usage.
 
 Or you can clone this repo and run:
+
 - `npm i` then,
 - `npm run example` for base logger and decorator demo
 - `npm run example-server` for middleware demo

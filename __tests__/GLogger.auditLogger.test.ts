@@ -39,13 +39,13 @@ describe('Test GLogger auditLogger', () => {
           trxName: 'trans name',
           trxStatus: 'SUCCESS',
           userToken: {
-            'appID.dwp.gov.sg': 'oma-facade',
-            'appInstanceID.dwp.gov.sg': '1',
+            'appID.module1.gov.sg': 'oma-facade',
+            'appInstanceID.module1.gov.sg': '1',
             exp: 1608441219,
             iat: 1600665219,
-            iss: 'onemobileuserauthws.dwp.gov.sg',
+            iss: 'userauthws.module1.gov.sg',
             jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-            'singpass_nric.dwp.gov.sg': '*****567A',
+            'singpass_nric.module1.gov.sg': '*****567A',
             sub: 'test_user@t.g.sg'
           }
         })
@@ -83,13 +83,13 @@ describe('Test GLogger auditLogger', () => {
           trxName: 'trans name',
           trxStatus: 'FAILURE',
           userToken: {
-            'appID.dwp.gov.sg': 'oma-facade',
-            'appInstanceID.dwp.gov.sg': '1',
+            'appID.module1.gov.sg': 'oma-facade',
+            'appInstanceID.module1.gov.sg': '1',
             exp: 1608441219,
             iat: 1600665219,
-            iss: 'onemobileuserauthws.dwp.gov.sg',
+            iss: 'userauthws.module1.gov.sg',
             jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-            'singpass_nric.dwp.gov.sg': '*****567A',
+            'singpass_nric.module1.gov.sg': '*****567A',
             sub: 'test_user@t.g.sg'
           }
         })
@@ -124,13 +124,13 @@ describe('Test GLogger auditLogger', () => {
           trxName: 'trans name',
           trxStatus: 'SUCCESS',
           userToken: {
-            'appID.dwp.gov.sg': 'oma-facade',
-            'appInstanceID.dwp.gov.sg': '1',
+            'appID.module1.gov.sg': 'oma-facade',
+            'appInstanceID.module1.gov.sg': '1',
             exp: 1608441219,
             iat: 1600665219,
-            iss: 'onemobileuserauthws.dwp.gov.sg',
+            iss: 'userauthws.module1.gov.sg',
             jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-            'singpass_nric.dwp.gov.sg': '*****567A',
+            'singpass_nric.module1.gov.sg': '*****567A',
             sub: 'test_user@t.g.sg'
           }
         })
@@ -169,13 +169,13 @@ describe('Test GLogger auditLogger', () => {
           trxName: 'trans name',
           trxStatus: 'FAILURE',
           userToken: {
-            'appID.dwp.gov.sg': 'oma-facade',
-            'appInstanceID.dwp.gov.sg': '1',
+            'appID.module1.gov.sg': 'oma-facade',
+            'appInstanceID.module1.gov.sg': '1',
             exp: 1608441219,
             iat: 1600665219,
-            iss: 'onemobileuserauthws.dwp.gov.sg',
+            iss: 'userauthws.module1.gov.sg',
             jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
-            'singpass_nric.dwp.gov.sg': '*****567A',
+            'singpass_nric.module1.gov.sg': '*****567A',
             sub: 'test_user@t.g.sg'
           }
         })
@@ -189,10 +189,10 @@ const token = {
   jti: '7e27866f-402c-4938-95c8-edf85e731b4a',
   iat: 1600665219,
   exp: 1608441219,
-  iss: 'onemobileuserauthws.dwp.gov.sg',
-  'appInstanceID.dwp.gov.sg': '1',
-  'appID.dwp.gov.sg': 'oma-facade',
-  'singpass_nric.dwp.gov.sg': 'S1234567A'
+  iss: 'userauthws.module1.gov.sg',
+  'appInstanceID.module1.gov.sg': '1',
+  'appID.module1.gov.sg': 'oma-facade',
+  'singpass_nric.module1.gov.sg': 'S1234567A'
 };
 
 const req: Partial<IExpressRequest> = {
