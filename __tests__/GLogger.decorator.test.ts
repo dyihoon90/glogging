@@ -141,12 +141,10 @@ describe('LoggedClass', () => {
     });
   });
   describe('When an async await method that rejects with a string is decorated', () => {
-    it('should call logger.warn', async (done) => {
+    it('should call logger.warn', (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
-      try {
-        await testClass.asyncAwaitFailureMethod('test');
-      } catch (e) {
+      testClass.asyncAwaitFailureMethod('test').catch((e) => {
         expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', undefined, {
           additionalInfo: { method: undefined, url: undefined },
           filename: expect.any(String),
@@ -158,16 +156,14 @@ describe('LoggedClass', () => {
           trxStatus: 'FAILURE'
         });
         done();
-      }
+      });
     });
   });
   describe('When an async await method that reejcts with an error is decorated', () => {
-    it('should call logger.warn', async (done) => {
+    it('should call logger.warn', (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
-      try {
-        await testClass.asyncAwaitFailureMethodWithError('test');
-      } catch (e) {
+      testClass.asyncAwaitFailureMethodWithError('test').catch((e) => {
         expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', expect.any(Error), {
           additionalInfo: { method: undefined, url: undefined },
           filename: expect.any(String),
@@ -179,7 +175,7 @@ describe('LoggedClass', () => {
           trxStatus: 'FAILURE'
         });
         done();
-      }
+      });
     });
   });
 });

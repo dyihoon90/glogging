@@ -16,7 +16,6 @@
   },
   "author": "",
   "license": "ISC",
-  "jest": "^25.1.0",
   "bugs": {
     "url": "https://github.com/dyihoon90/glogging/issues"
   },
@@ -37,21 +36,21 @@
   },
   "devDependencies": {
     "@types/is-secret": "^1.2.0",
-    "@types/jest": "^26.0.14",
+    "@types/jest": "^27.4.0",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/lodash": "^4.14.161",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^2.27.0",
-    "eslint": "^6.8.0",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
     "husky": "^4.3.0",
-    "jest": "^25.1.0",
+    "jest": "^27.4.5",
     "jest-html-reporters": "^2.0.1",
     "prettier": "^2.0.4",
-    "ts-jest": "^26.4.0",
+    "ts-jest": "^27.1.2",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3",
     "winston-transport": "^4.4.0"
