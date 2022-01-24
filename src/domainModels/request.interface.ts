@@ -20,5 +20,5 @@ export interface IReqRes {
 }
 
 export interface IReq {
-  req: IExpressRequest;
+  req?: IExpressRequest;
 }
