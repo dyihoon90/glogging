@@ -74,17 +74,17 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: ITransactionLog = {
       trxCategory,
-      trxId: req.uuid || 'missing trxId in req',
+      trxId: req?.uuid || 'missing trxId in req',
       trxModule,
       trxName,
       filename,
-      userToken: req.user,
+      userToken: req?.user,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
       ).toMillis(),
       trxStatus: TransactionStatus.SUCCESS,
-      additionalInfo: { url: req.url, method: req.method }
+      additionalInfo: { url: req?.url, method: req?.method }
     };
     if (logData.additionalInfo && result) {
       logData.additionalInfo.result = result;
@@ -101,17 +101,17 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: ITransactionLog = {
       trxCategory,
-      trxId: req.uuid || 'missing trxId in req',
+      trxId: req?.uuid || 'missing trxId in req',
       trxName,
       trxModule,
       filename,
-      userToken: req.user,
+      userToken: req?.user,
       timeTakenInMillis: Duration.between(
         Instant.ofEpochMilli(trxStartTimeInEpochMillis),
         ZonedDateTime.now()
       ).toMillis(),
       trxStatus: TransactionStatus.FAILURE,
-      additionalInfo: { url: req.url, method: req.method }
+      additionalInfo: { url: req?.url, method: req?.method }
     };
     // Promise.reject() by convention should reject with Error.
     // but in scenarios where it rejects with other things, we still try our best to log the object
