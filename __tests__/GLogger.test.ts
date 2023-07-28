@@ -2,6 +2,14 @@ import { format } from 'winston';
 import { transports } from 'winston';
 import { __test__, GLogger, LoggingMode } from '../src';
 
+class CustomError extends Error {
+  metadata: string;
+  constructor(msg: string, metadata: string) {
+    super(msg);
+    this.metadata = metadata;
+  }
+}
+
 describe('Test GLogger', () => {
   let mockFn: () => any;
   let logger: GLogger;
@@ -118,6 +126,27 @@ describe('Test GLogger', () => {
         );
       });
     });
+    describe('when a custom Error class that extends Error is defined', () => {
+      test('should call transport in the correct format', () => {
+        logger.warn('msg', new CustomError('error msg', 'metadata'), { data1: 'value' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data1: 'value',
+            level: 'warn',
+            message: 'msg',
+            additionalInfo: {
+              error: expect.objectContaining({
+                message: 'error msg',
+                name: 'Error',
+                stack: expect.any(String),
+                metadata: 'metadata'
+              })
+            }
+          })
+        );
+      });
+    });
     describe('When error is not defined', () => {
       test('should call transport in the correct format', () => {
         logger.warn('msg', undefined, { data1: 'value' });
@@ -144,6 +173,27 @@ describe('Test GLogger', () => {
             message: 'msg',
             additionalInfo: {
               error: expect.objectContaining({ message: 'error msg', name: 'Error', stack: expect.any(String) })
+            }
+          })
+        );
+      });
+    });
+    describe('when a custom Error class that extends Error is defined', () => {
+      test('should call transport in the correct format', () => {
+        logger.error('msg', new CustomError('error msg', 'metadata'), { data1: 'value' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data1: 'value',
+            level: 'error',
+            message: 'msg',
+            additionalInfo: {
+              error: expect.objectContaining({
+                message: 'error msg',
+                name: 'Error',
+                stack: expect.any(String),
+                metadata: 'metadata'
+              })
             }
           })
         );

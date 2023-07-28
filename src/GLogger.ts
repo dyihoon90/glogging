@@ -140,7 +140,12 @@ export class GLogger {
     if (error) {
       dataToLog.additionalInfo = {
         ...(dataToLog.additionalInfo as Record<string, any>),
-        error
+        error: {
+          ...error,
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        }
       };
     }
     if (this.loggingLevel <= LoggingLevel.WARN) {
@@ -167,7 +172,12 @@ export class GLogger {
     if (error) {
       dataToLog.additionalInfo = {
         ...(dataToLog.additionalInfo as Record<string, any>),
-        error
+        error: {
+          ...error,
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        }
       };
     }
     if (this.loggingLevel <= LoggingLevel.ERROR) {

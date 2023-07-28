@@ -74,7 +74,7 @@ describe('Test GLogger auditLogger', () => {
             srcIp: '123.111.222.333',
             statusCode: 400,
             url: 'test/test/aa',
-            error: expect.any(Error)
+            error: { message: 'error msg', name: 'Error', stack: expect.any(String) }
           },
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'HTTP',
@@ -160,7 +160,7 @@ describe('Test GLogger auditLogger', () => {
           additionalInfo: {
             method: 'GET',
             url: 'test/test/aa',
-            error: expect.any(Error)
+            error: { message: 'error msg', name: 'Error', stack: expect.any(String) }
           },
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
