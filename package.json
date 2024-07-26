@@ -7,6 +7,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
+    "prepare": "husky init",
     "test": "jest -i",
     "prepublishOnly": "npm run build",
     "build": "tsc --project tsconfig.release.json",
@@ -21,11 +22,6 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/dyihoon90/glogging/issues"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "npm run build && npm t"
-    }
   },
   "homepage": "https://github.com/dyihoon90/glogging#readme",
   "dependencies": {
