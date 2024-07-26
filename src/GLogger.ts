@@ -6,6 +6,7 @@ import { DateTimeFormatter, ZonedDateTime } from '@js-joda/core';
 import { traverseAndMutateObject } from './utils/ObjUtils';
 import { cloneDeep, isArray } from 'lodash';
 import stringify from 'json-stringify-safe';
+import { serializeError } from 'serialize-error';
 
 const DEFAULT_CONFIG: IConfigs = { loggingMode: LoggingMode.PRODUCTION };
 
@@ -140,12 +141,7 @@ export class GLogger {
     if (error) {
       dataToLog.additionalInfo = {
         ...(dataToLog.additionalInfo as Record<string, any>),
-        error: {
-          ...error,
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        }
+        error: serializeError(error)
       };
     }
     if (this.loggingLevel <= LoggingLevel.WARN) {
@@ -172,12 +168,7 @@ export class GLogger {
     if (error) {
       dataToLog.additionalInfo = {
         ...(dataToLog.additionalInfo as Record<string, any>),
-        error: {
-          ...error,
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        }
+        error: serializeError(error)
       };
     }
     if (this.loggingLevel <= LoggingLevel.ERROR) {

@@ -3,23 +3,41 @@ import { clone, forIn, isPlainObject } from 'lodash';
 /**
  * Traverse the object deeply, calling callback on all properties that are not object
  * Arrays and objects are both considered object
+ * Removes circular references
  * Note: Mutates the obj passed in
  * @param obj
  * @param callback
+ * @param seen Set of already seen objects (used for circular reference detection)
  * @returns
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function traverseAndMutateObject(obj: Record<string | symbol, any>, callback: (key: string, value: any) => any) {
+export function traverseAndMutateObject(
+  obj: Record<string | symbol, any>,
+  callback: (key: string, value: any) => any,
+  seen: Set<any> = new Set()
+): Record<string | symbol, any> {
   if (!obj) {
     return obj;
   }
+
+  // If we've seen this object before, it's a circular reference
+  if (seen.has(obj)) {
+    return '[Circular]' as any;
+  }
+
+  // Add this object to the set of seen objects
+  seen.add(obj);
+
   forIn(obj, (value, key) => {
     if (isPlainObject(value)) {
-      obj[key] = traverseAndMutateObject(value, callback);
+      obj[key] = traverseAndMutateObject(value, callback, seen);
     } else {
       obj[key] = callback(key, value);
     }
   });
+
+  // Remove this object from the set of seen objects
+  seen.delete(obj);
+
   return obj;
 }
 
@@ -48,11 +66,10 @@ export function redactProperties<T extends Record<string | number | symbol, any>
     });
   } else {
     Object.keys(clonedObj).forEach((key) => {
-      if (redactedProperties.includes(key) && typeof clonedObj === 'object') {
-        clonedObj[key as any] = '[REDACTED]';
-      }
-      if (typeof clonedObj[key] === 'object') {
-        clonedObj[key as any] = redactProperties(redactedProperties, clonedObj[key]);
+      if (redactedProperties.includes(key)) {
+        (clonedObj as any)[key] = '[REDACTED]';
+      } else if (typeof clonedObj[key] === 'object' && clonedObj[key] !== null) {
+        (clonedObj as any)[key] = redactProperties(redactedProperties, clonedObj[key]);
       }
     });
   }

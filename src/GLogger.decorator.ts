@@ -161,7 +161,7 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
     // Scenario where decoratedFunc is synchronous returning value
     // Why separate? if we `await` sync decoratedFunc, return value gets casted into Promise, becoming async
     if (opt.toLogResults) {
-      opt.redactedProperties && promiseOrValue ? logSuccess(redact(promiseOrValue)) : logSuccess(promiseOrValue);
+      opt.redactedProperties && promiseOrValue ? logSuccess(redact(promiseOrValue)) : logSuccess(promiseOrValue as any);
     } else {
       logSuccess();
     }

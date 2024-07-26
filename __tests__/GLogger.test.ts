@@ -13,7 +13,7 @@ class CustomError extends Error {
 describe('Test GLogger', () => {
   let mockFn: () => any;
   let logger: GLogger;
-  beforeAll(() => {
+  beforeEach(() => {
     mockFn = jest.fn();
     logger = new GLogger({ loggingMode: LoggingMode.LOCAL });
     logger.addLogTransport(new transports.Console({ format: format.printf(mockFn) }));
@@ -96,14 +96,14 @@ describe('Test GLogger', () => {
     });
   });
   describe('Test Debug log', () => {
-    test('should call transport in the correct format', () => {
+    it('should call transport in the correct format', () => {
       logger.debug('msg', { data1: 'value' });
 
       expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ data1: 'value', level: 'debug', message: 'msg' }));
     });
   });
   describe('Test Info Log', () => {
-    test('should call transport in the correct format', () => {
+    it('should call transport in the correct format', () => {
       logger.info('msg', { data1: 'value' });
 
       expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ data1: 'value', level: 'info', message: 'msg' }));
@@ -111,7 +111,7 @@ describe('Test GLogger', () => {
   });
   describe('Test Warn Log', () => {
     describe('when error is defined', () => {
-      test('should call transport in the correct format', () => {
+      it('should call transport in the correct format', () => {
         logger.warn('msg', new Error('error msg'), { data1: 'value' });
 
         expect(mockFn).toHaveBeenCalledWith(
@@ -127,7 +127,7 @@ describe('Test GLogger', () => {
       });
     });
     describe('when a custom Error class that extends Error is defined', () => {
-      test('should call transport in the correct format', () => {
+      it('should call transport in the correct format', () => {
         logger.warn('msg', new CustomError('error msg', 'metadata'), { data1: 'value' });
 
         expect(mockFn).toHaveBeenCalledWith(
@@ -258,6 +258,97 @@ describe('Test GLogger', () => {
   "[Circular ~]"
  ]
 }`);
+    });
+  });
+  describe('Test logging complex objects', () => {
+    describe('when logging objects with circular references', () => {
+      it('should call transport with serialized circular object', () => {
+        interface CircularObject {
+          name: string;
+          self?: CircularObject;
+          nested?: {
+            circular?: CircularObject;
+          };
+        }
+
+        const circularObj: CircularObject = {
+          name: 'Circular Object'
+        };
+        circularObj.self = circularObj;
+        circularObj.nested = { circular: circularObj };
+
+        logger.info('Logging circular object', circularObj);
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            level: 'info',
+            message: 'Logging circular object',
+            name: 'Circular Object',
+            self: { name: 'Circular Object', nested: { circular: '[Circular]' }, self: '[Circular]' },
+            nested: {
+              circular: '[Circular]'
+            }
+          })
+        );
+      });
+    });
+    describe('when error has circular references', () => {
+      it('should call transport with serialized circular error', () => {
+        interface CircularError extends Error {
+          circular?: CircularError;
+        }
+
+        const circularError: CircularError = new Error('Circular error');
+        circularError.circular = circularError;
+
+        logger.warn('Circular error occurred', circularError, { data1: 'value' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data1: 'value',
+            level: 'warn',
+            message: 'Circular error occurred',
+            additionalInfo: {
+              error: expect.objectContaining({
+                message: 'Circular error',
+                name: 'Error',
+                stack: expect.any(String),
+                circular: '[Circular]'
+              })
+            }
+          })
+        );
+      });
+    });
+
+    describe('when error has nested errors', () => {
+      it('should call transport with serialized nested errors', () => {
+        const nestedError = new Error('Nested error');
+        const parentError = new Error('Parent error');
+        parentError.cause = nestedError;
+
+        logger.warn('Nested error occurred', parentError, { data1: 'value' });
+
+        expect(mockFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data1: 'value',
+            level: 'warn',
+            message: 'Nested error occurred',
+            additionalInfo: {
+              error: expect.objectContaining({
+                message: 'Parent error',
+                name: 'Error',
+                stack: expect.any(String),
+                cause: expect.objectContaining({
+                  message: 'Nested error',
+                  name: 'Error',
+                  stack: expect.any(String)
+                })
+              })
+            }
+          })
+        );
+      });
     });
   });
 });
