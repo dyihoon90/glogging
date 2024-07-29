@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import isSecret from 'is-secret';
 import winston, { Logger, format, transports, Logform } from 'winston';
 import * as Transport from 'winston-transport';

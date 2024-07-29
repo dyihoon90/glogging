@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { format } from 'winston';
 import { transports } from 'winston';
 import { __test__, GLogger, LoggingMode } from '../src';
@@ -263,15 +264,15 @@ describe('Test GLogger', () => {
   describe('Test logging complex objects', () => {
     describe('when logging objects with circular references', () => {
       it('should call transport with serialized circular object', () => {
-        interface CircularObject {
+        interface ICircularObject {
           name: string;
-          self?: CircularObject;
+          self?: ICircularObject;
           nested?: {
-            circular?: CircularObject;
+            circular?: ICircularObject;
           };
         }
 
-        const circularObj: CircularObject = {
+        const circularObj: ICircularObject = {
           name: 'Circular Object'
         };
         circularObj.self = circularObj;
@@ -294,11 +295,11 @@ describe('Test GLogger', () => {
     });
     describe('when error has circular references', () => {
       it('should call transport with serialized circular error', () => {
-        interface CircularError extends Error {
-          circular?: CircularError;
+        interface ICircularError extends Error {
+          circular?: ICircularError;
         }
 
-        const circularError: CircularError = new Error('Circular error');
+        const circularError: ICircularError = new Error('Circular error');
         circularError.circular = circularError;
 
         logger.warn('Circular error occurred', circularError, { data1: 'value' });
