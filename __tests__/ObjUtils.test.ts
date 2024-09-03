@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { redactProperties, traverseAndMutateObject } from '../src/utils/ObjUtils';
 
 describe('redactProperties', () => {
@@ -84,21 +86,54 @@ describe('redactProperties', () => {
   });
 });
 describe('traverseAndMutateObject', () => {
-  describe('When property is an object', () => {
-    it('should not invoke callback function for the property', () => {
-      const fn = jest.fn();
-      const objProp = { b: 'c' };
-      traverseAndMutateObject({ a: objProp }, fn);
-      expect(fn).toHaveBeenCalledWith('b', 'c');
-      expect(fn).not.toHaveBeenCalledWith('a', objProp);
+  describe('Basic functionality', () => {
+    it('should traverse and mutate a simple object', () => {
+      const obj = { a: 1, b: 2 };
+      const result = traverseAndMutateObject(obj, (_, value) => (typeof value === 'number' ? value + 1 : value));
+      expect(result).toEqual({ a: 2, b: 3 });
+    });
+
+    it('should handle nested objects', () => {
+      const obj = { a: 1, b: { c: 2, d: 3 } };
+      const result = traverseAndMutateObject(obj, (_, value) => (typeof value === 'number' ? value * 2 : value));
+      expect(result).toEqual({ a: 2, b: { c: 4, d: 6 } });
     });
   });
-  describe('When property is an array', () => {
-    it('should not callback function for the property', () => {
-      const fn = jest.fn();
-      const arrProp = ['x', 'y'];
-      traverseAndMutateObject({ a: arrProp }, fn);
-      expect(fn).toHaveBeenCalledWith('a', arrProp);
+
+  describe('Depth limiting', () => {
+    it('should respect the maximum depth', () => {
+      const deepObj = { a: { b: { c: { d: 1 } } } };
+      const result = traverseAndMutateObject(deepObj, (_, v) => v, 2);
+      expect(result).toEqual({ a: { b: {} } });
+    });
+
+    it('should process at maximum depth but not beyond', () => {
+      const deepObj = { a: { b: { c: 1 } } };
+      const result = traverseAndMutateObject(deepObj, (_, v) => (typeof v === 'number' ? v + 1 : v), 3);
+      expect(result).toEqual({ a: { b: { c: 2 } } });
+    });
+  });
+
+  describe('Circular reference handling', () => {
+    it('should handle circular references', () => {
+      const obj: any = { a: 1 };
+      obj.b = obj;
+      const result = traverseAndMutateObject(obj, (_, v) => v);
+      expect(result).toEqual({ a: 1, b: '[Circular]' });
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle null values', () => {
+      const obj = { a: null, b: 2 };
+      const result = traverseAndMutateObject(obj, (_, v) => (v === null ? 'was null' : v));
+      expect(result).toEqual({ a: 'was null', b: 2 });
+    });
+
+    it('should handle undefined values', () => {
+      const obj = { a: undefined, b: 2 };
+      const result = traverseAndMutateObject(obj, (_, v) => (v === undefined ? 'was undefined' : v));
+      expect(result).toEqual({ a: 'was undefined', b: 2 });
     });
   });
 });

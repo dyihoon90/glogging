@@ -142,7 +142,7 @@ export class GLogger {
     if (error) {
       dataToLog.additionalInfo = {
         ...(dataToLog.additionalInfo as Record<string, any>),
-        error: serializeError(error)
+        error: serializeError(error, { maxDepth: 5 })
       };
     }
     if (this.loggingLevel <= LoggingLevel.WARN) {
