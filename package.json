@@ -7,7 +7,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "prepare": "husky init",
+    "prepare": "husky",
     "test": "jest -i",
     "prepublishOnly": "npm run build",
     "build": "tsc --project tsconfig.release.json",
