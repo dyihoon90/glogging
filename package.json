@@ -36,7 +36,10 @@
   },
   "overrides": {
     "winston": {
-      "async": "3.2.6"
+      "async": "^3.2.6"
+    },
+    "jake": {
+      "async": "^3.2.6"
     }
   },
   "devDependencies": {
