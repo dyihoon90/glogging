@@ -34,6 +34,11 @@
     "uuid": "^10.0.0",
     "winston": "^3.17.0"
   },
+  "overrides": {
+    "winston": {
+      "async": "3.2.6"
+    }
+  },
   "devDependencies": {
     "@types/is-secret": "^1.2.2",
     "@types/jest": "^29.5.12",
