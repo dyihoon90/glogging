@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { format } from 'winston';
 import { transports } from 'winston';
 import {
@@ -159,5 +162,7 @@ LoggedFunctionWithContext(aSyncSuccessTransaction, req as IExpressRequest, { myO
 LoggedFunctionWithContext(aSyncSuccessArrowTransaction, req as IExpressRequest, 'resolved successfully');
 try {
   LoggedFunctionWithContext(aSyncFailTransaction, req as IExpressRequest, 'met an error');
-} catch (e) {}
+} catch (e) {
+  console.log(e);
+}
 divider('LOGGING TRANSACTION WITH FUNCTION DECORATOR END');
