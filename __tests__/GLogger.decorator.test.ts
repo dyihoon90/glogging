@@ -144,7 +144,7 @@ describe('LoggedClass', () => {
     it('should call logger.warn', (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
-      testClass.asyncAwaitFailureMethod('test').catch((e) => {
+      testClass.asyncAwaitFailureMethod('test').catch(() => {
         expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', undefined, {
           additionalInfo: { method: undefined, url: undefined },
           filename: expect.any(String),
@@ -163,7 +163,7 @@ describe('LoggedClass', () => {
     it('should call logger.warn', (done) => {
       const testClass = new TestClass();
       expect.assertions(1);
-      testClass.asyncAwaitFailureMethodWithError('test').catch((e) => {
+      testClass.asyncAwaitFailureMethodWithError('test').catch(() => {
         expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', expect.any(Error), {
           additionalInfo: { method: undefined, url: undefined },
           filename: expect.any(String),
@@ -208,7 +208,7 @@ describe('LoggedFunction', () => {
       expect(result).toEqual('test');
     });
   });
-  describe('When decorating a function and opt.toLogResult is set to true', () => {
+  describe('When opt.toLogResult is set to true', () => {
     it('should log the result', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
@@ -231,7 +231,7 @@ describe('LoggedFunction', () => {
     });
     describe('When opt.redactedProperties is also defined', () => {
       it('should log redacted', () => {
-        const syncFunc = (req: IExpressRequest, x: Object) => x;
+        const syncFunc = (req: IExpressRequest, x: object) => x;
 
         LoggedFunction(
           logger,
@@ -255,7 +255,7 @@ describe('LoggedFunction', () => {
       });
     });
   });
-  describe('When decorating a function and toLogResult is set to the default false value', () => {
+  describe('When toLogResult is set to the default false value', () => {
     it('should not log the result', () => {
       const syncFunc = (req: IExpressRequest, x: string) => x;
 
@@ -274,6 +274,135 @@ describe('LoggedFunction', () => {
         trxModule: 'test_module',
         trxName: 'syncFunc',
         trxStatus: 'SUCCESS'
+      });
+    });
+  });
+  describe('When opt.toLogSuccessTxn is set to TRUE', () => {
+    describe('sync fn succeeds', () => {
+      it('should log that the fn completed successfully', () => {
+        const syncFunc = (req: IExpressRequest, x: string) => x;
+
+        LoggedFunction(
+          logger,
+          { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+          { toLogSuccessTxn: true }
+        )(syncFunc, {} as IExpressRequest, 'test');
+
+        expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: syncFunc success', {
+          additionalInfo: { method: undefined, url: undefined },
+          filename: expect.any(String),
+          timeTakenInMillis: expect.any(Number),
+          trxCategory: 'TRANS',
+          trxId: 'missing trxId in req',
+          trxModule: 'test_module',
+          trxName: 'syncFunc',
+          trxStatus: 'SUCCESS'
+        });
+      });
+    });
+    describe('async fn succeeds', () => {
+      it('should log that the fn completed successfully', async () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        const asyncFunc = async (req: IExpressRequest, x: string) => x;
+
+        await LoggedFunction(
+          logger,
+          { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+          { toLogSuccessTxn: true }
+        )(asyncFunc, {} as IExpressRequest, 'test');
+
+        expect(mockInfo).toHaveBeenNthCalledWith(1, 'Transaction: asyncFunc success', {
+          additionalInfo: { method: undefined, url: undefined },
+          filename: expect.any(String),
+          timeTakenInMillis: expect.any(Number),
+          trxCategory: 'TRANS',
+          trxId: 'missing trxId in req',
+          trxModule: 'test_module',
+          trxName: 'asyncFunc',
+          trxStatus: 'SUCCESS'
+        });
+      });
+    });
+  });
+  describe('When opt.toLogSuccessTxn is set to FALSE', () => {
+    describe('Sync fn succeeds', () => {
+      it('should not log that the fn completed successfully', () => {
+        const syncFunc = (req: IExpressRequest, x: string) => x;
+
+        LoggedFunction(
+          logger,
+          { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+          { toLogSuccessTxn: false }
+        )(syncFunc, {} as IExpressRequest, 'test');
+
+        expect(mockInfo).not.toHaveBeenCalled();
+      });
+    });
+    describe('Async fn succeeds', () => {
+      it('should not log that the fn completed successfully', async () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        const asyncFunc = async (req: IExpressRequest, x: string) => x;
+
+        await LoggedFunction(
+          logger,
+          { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+          { toLogSuccessTxn: false }
+        )(asyncFunc, {} as IExpressRequest, 'test');
+
+        expect(mockInfo).not.toHaveBeenCalled();
+      });
+    });
+    describe('Sync fn fails', () => {
+      it('should still log that the fn failed', () => {
+        const syncFailureFunc = (req: IExpressRequest, x: string) => {
+          throw new Error(x);
+        };
+        expect.assertions(1);
+        try {
+          LoggedFunction(
+            logger,
+            { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+            { toLogSuccessTxn: false }
+          )(syncFailureFunc, {} as IExpressRequest, 'test');
+        } catch (e) {
+          expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', expect.any(Error), {
+            additionalInfo: { method: undefined, url: undefined },
+            filename: expect.any(String),
+            timeTakenInMillis: expect.any(Number),
+            trxCategory: 'TRANS',
+            trxId: 'missing trxId in req',
+            trxModule: 'test_module',
+            trxName: 'syncFailureFunc',
+            trxStatus: 'FAILURE'
+          });
+        }
+      });
+    });
+    describe('Async fn fails', () => {
+      it('should still log that the fn failed', async () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        const asyncFailureFunc = async (req: IExpressRequest, x: string) => {
+          throw new Error(x);
+        };
+        expect.assertions(1);
+        try {
+          await LoggedFunction(
+            logger,
+            { trxModule: 'test_module', trxCategory: TransactionCategory.TRANS, filename: __filename },
+            { toLogSuccessTxn: false }
+          )(asyncFailureFunc, {} as IExpressRequest, 'test');
+        } catch (e) {
+          expect(mockWarn).toHaveBeenNthCalledWith(1, 'test', expect.any(Error), {
+            additionalInfo: { method: undefined, url: undefined },
+            filename: expect.any(String),
+            timeTakenInMillis: expect.any(Number),
+            trxCategory: 'TRANS',
+            trxId: 'missing trxId in req',
+            trxModule: 'test_module',
+            trxName: 'asyncFailureFunc',
+            trxStatus: 'FAILURE'
+          });
+        }
       });
     });
   });

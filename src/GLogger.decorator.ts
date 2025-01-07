@@ -1,11 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { GLogger, IExpressRequest, ITransactionLoggingOptions } from '.';
 import { IDecoratorMetadata } from './domainModels';
 import { GLoggerAuditLogger } from './GLogger.auditLogger';
 import { redactProperties } from './utils/ObjUtils';
 
-const DEFAULT_OPTIONS: ITransactionLoggingOptions = {
-  toLogResults: false
+/**
+ * Default options for transaction logging
+ */
+const DEFAULT_TXN_LOGGING_OPTIONS: ITransactionLoggingOptions = {
+  toLogResults: false,
+  toLogSuccessTxn: true
 };
 
 /**
@@ -78,7 +84,7 @@ export function LoggedMethod(
           return originalMethod;
         }
         descriptor.value = (req: IExpressRequest, ...args: unknown[]) => {
-          return decorateFunctionWithLogs(logger, metadata, originalMethod.bind(this), key, req, options, ...args);
+          return executeFunctionWithLogs(logger, metadata, originalMethod.bind(this), key, req, options, ...args);
         };
         const boundFn = descriptor.value;
         return boundFn;
@@ -108,14 +114,25 @@ export function LoggedFunction(logger: GLogger, metadata: IDecoratorMetadata, op
     req: IExpressRequest,
     ...args: U
   ): Promise<unknown> | V {
-    return decorateFunctionWithLogs(logger, metadata, decoratedFunc, decoratedFunc.name, req, options, ...args);
+    return executeFunctionWithLogs(logger, metadata, decoratedFunc, decoratedFunc.name, req, options, ...args);
   };
 }
 
-function decorateFunctionWithLogs<U extends unknown[], V>(
+/**
+ * Executes a function and logs the result
+ * @param logger a GLogger instance
+ * @param metadata metadata including transaction category, transaction module, & optional filename
+ * @param decoratedFunc the function to execute
+ * @param decoratedFuncName the name of the decorated function
+ * @param req the request object
+ * @param options optional logging options
+ * @param args the arguments to pass to the decorated function
+ * @returns
+ */
+function executeFunctionWithLogs<U extends unknown[], V>(
   logger: GLogger,
   { trxCategory, trxModule, filename }: IDecoratorMetadata,
-  decoratedFunc: (req: IExpressRequest, ...args: U) => V,
+  decoratedFunc: (r: IExpressRequest, ...a: U) => V,
   decoratedFuncName: string | symbol,
   req: IExpressRequest,
   options?: ITransactionLoggingOptions,
@@ -132,7 +149,7 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
   );
   try {
     const promiseOrValue = decoratedFunc(req, ...args);
-    const opt = { ...DEFAULT_OPTIONS, ...options };
+    const opt = { ...DEFAULT_TXN_LOGGING_OPTIONS, ...options };
     const logSuccess = auditLoggerInstance.logTransactionSuccess.bind(
       auditLoggerInstance,
       `Transaction: ${fnName} success`,
@@ -140,16 +157,18 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
       { trxCategory, filename, trxName: fnName, trxModule },
       startTime
     );
-    const redact = redactProperties.bind(null, opt.redactedProperties as any);
+    const redact = redactProperties.bind(null, opt.redactedProperties ?? []);
 
     // Scenario where decoratedFunc is asynchronous returning Promise
     if (promiseOrValue instanceof Promise) {
       return promiseOrValue
         .then((result) => {
-          if (opt.toLogResults) {
-            opt.redactedProperties && result ? logSuccess(redact(result)) : logSuccess(result);
-          } else {
-            logSuccess();
+          if (opt.toLogSuccessTxn) {
+            if (opt.toLogResults) {
+              opt.redactedProperties && result ? logSuccess(redact(result)) : logSuccess(result);
+            } else {
+              logSuccess();
+            }
           }
           return result;
         })
@@ -160,10 +179,14 @@ function decorateFunctionWithLogs<U extends unknown[], V>(
     }
     // Scenario where decoratedFunc is synchronous returning value
     // Why separate? if we `await` sync decoratedFunc, return value gets casted into Promise, becoming async
-    if (opt.toLogResults) {
-      opt.redactedProperties && promiseOrValue ? logSuccess(redact(promiseOrValue)) : logSuccess(promiseOrValue as any);
-    } else {
-      logSuccess();
+    if (opt.toLogSuccessTxn) {
+      if (opt.toLogResults) {
+        opt.redactedProperties && promiseOrValue
+          ? logSuccess(redact(promiseOrValue))
+          : logSuccess(promiseOrValue as any);
+      } else {
+        logSuccess();
+      }
     }
     return promiseOrValue;
   } catch (e) {

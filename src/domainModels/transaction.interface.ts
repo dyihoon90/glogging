@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 export enum TransactionCategory {
   AUTH = 'AUTH',
   TRANS = 'TRANS',
@@ -10,7 +11,21 @@ export enum TransactionStatus {
 }
 
 export interface ITransactionLoggingOptions {
-  toLogResults: boolean;
+  /**
+   * If true, the transaction results will be logged
+   * If false, the transaction results will not be logged
+   * @default false
+   */
+  toLogResults?: boolean;
+  /**
+   * If true, the transaction success will be logged
+   * If false, only transacion failure will be logged
+   * @default true
+   */
+  toLogSuccessTxn?: boolean;
+  /**
+   * Properties to be redacted from the transaction log
+   */
   redactedProperties?: Array<string | number | symbol>;
 }
 
