@@ -1,6 +1,6 @@
 {
   "name": "@dyihoon90/glogging",
-  "version": "3.0.7-beta.0",
+  "version": "3.0.7",
   "description": "HTTP request logging middleware & transaction function decorator for express, using winston",
   "main": "dist/index.js",
   "engines": {
