@@ -209,6 +209,6 @@ Or you can clone this repo and run:
 
 ## Troubleshooting
 
-| Scenario                                              | Resolution                                                                                                                                           |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Getting 'missing trxId in req' for the transaction ID | All functions being logged must take in the request object `IExpressRequest` as its first parameter, even if the function itself doesn't require it. |
+| Scenario                          | Resolution                                                                                                                                           |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Getting '' for the transaction ID | All functions being logged must take in the request object `IExpressRequest` as its first parameter, even if the function itself doesn't require it. |
