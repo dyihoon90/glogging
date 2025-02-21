@@ -73,7 +73,7 @@ describe('LoggedClass', () => {
         filename: expect.any(String),
         timeTakenInMillis: expect.any(Number),
         trxCategory: 'TRANS',
-        trxId: 'missing trxId in req',
+        trxId: '',
         trxModule: 'TestModule',
         trxName: 'syncSuccessMethod',
         trxStatus: 'SUCCESS'
@@ -93,7 +93,7 @@ describe('LoggedClass', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'TestModule',
           trxName: 'syncFailureMethod',
           trxStatus: 'FAILURE'
@@ -112,7 +112,7 @@ describe('LoggedClass', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'TestModule',
           trxName: 'asyncSuccessMethod',
           trxStatus: 'SUCCESS'
@@ -131,7 +131,7 @@ describe('LoggedClass', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'TestModule',
           trxName: 'asyncFailureMethod',
           trxStatus: 'FAILURE'
@@ -150,7 +150,7 @@ describe('LoggedClass', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'TestModule',
           trxName: 'asyncAwaitFailureMethod',
           trxStatus: 'FAILURE'
@@ -169,7 +169,7 @@ describe('LoggedClass', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'TestModule',
           trxName: 'asyncAwaitFailureMethodWithError',
           trxStatus: 'FAILURE'
@@ -223,7 +223,7 @@ describe('LoggedFunction', () => {
         filename: expect.any(String),
         timeTakenInMillis: expect.any(Number),
         trxCategory: 'TRANS',
-        trxId: 'missing trxId in req',
+        trxId: '',
         trxModule: 'test_module',
         trxName: 'syncFunc',
         trxStatus: 'SUCCESS'
@@ -247,7 +247,7 @@ describe('LoggedFunction', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'test_module',
           trxName: 'syncFunc',
           trxStatus: 'SUCCESS'
@@ -270,7 +270,7 @@ describe('LoggedFunction', () => {
         filename: expect.any(String),
         timeTakenInMillis: expect.any(Number),
         trxCategory: 'TRANS',
-        trxId: 'missing trxId in req',
+        trxId: '',
         trxModule: 'test_module',
         trxName: 'syncFunc',
         trxStatus: 'SUCCESS'
@@ -293,7 +293,7 @@ describe('LoggedFunction', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'test_module',
           trxName: 'syncFunc',
           trxStatus: 'SUCCESS'
@@ -316,7 +316,7 @@ describe('LoggedFunction', () => {
           filename: expect.any(String),
           timeTakenInMillis: expect.any(Number),
           trxCategory: 'TRANS',
-          trxId: 'missing trxId in req',
+          trxId: '',
           trxModule: 'test_module',
           trxName: 'asyncFunc',
           trxStatus: 'SUCCESS'
@@ -370,7 +370,7 @@ describe('LoggedFunction', () => {
             filename: expect.any(String),
             timeTakenInMillis: expect.any(Number),
             trxCategory: 'TRANS',
-            trxId: 'missing trxId in req',
+            trxId: '',
             trxModule: 'test_module',
             trxName: 'syncFailureFunc',
             trxStatus: 'FAILURE'
@@ -397,7 +397,7 @@ describe('LoggedFunction', () => {
             filename: expect.any(String),
             timeTakenInMillis: expect.any(Number),
             trxCategory: 'TRANS',
-            trxId: 'missing trxId in req',
+            trxId: '',
             trxModule: 'test_module',
             trxName: 'asyncFailureFunc',
             trxStatus: 'FAILURE'

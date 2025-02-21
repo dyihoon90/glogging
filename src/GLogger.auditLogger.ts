@@ -23,7 +23,7 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: IHttpLog = {
       trxCategory: TransactionCategory.HTTP,
-      trxId: req.uuid || 'missing trxId in req',
+      trxId: req.uuid || '',
       trxName,
       trxModule,
       filename,
@@ -45,7 +45,7 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: IHttpLog = {
       trxCategory: TransactionCategory.HTTP,
-      trxId: req.uuid || 'missing trxId in req',
+      trxId: req.uuid || '',
       trxName,
       trxModule,
       filename,
@@ -74,7 +74,7 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: ITransactionLog = {
       trxCategory,
-      trxId: req?.uuid || 'missing trxId in req',
+      trxId: req?.uuid || '',
       trxModule,
       trxName,
       filename,
@@ -101,7 +101,7 @@ export class GLoggerAuditLogger {
   ): this {
     const logData: ITransactionLog = {
       trxCategory,
-      trxId: req?.uuid || 'missing trxId in req',
+      trxId: req?.uuid || '',
       trxName,
       trxModule,
       filename,
