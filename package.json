@@ -4,7 +4,7 @@
   "description": "HTTP request logging middleware & transaction function decorator for express, using winston",
   "main": "dist/index.js",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "prepare": "husky",
