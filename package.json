@@ -31,7 +31,7 @@
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.21",
     "serialize-error": "^8.1.0",
-    "uuid": "^10.0.0",
+    "uuid": "^14.0.0",
     "winston": "^3.17.0"
   },
   "overrides": {
