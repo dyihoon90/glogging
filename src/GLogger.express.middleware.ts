@@ -1,5 +1,4 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { IExpressRequest, IExpressResponse } from './domainModels';
 import { GLogger } from './GLogger';
 import { GLoggerAuditLogger } from './GLogger.auditLogger';
@@ -20,7 +19,7 @@ export function enhanceReqWithTransactionAndTime(
   try {
     req.reqStartTimeInEpochMillis = new Date().getTime();
     if (!req.uuid) {
-      req.uuid = uuidv4();
+      req.uuid = crypto.randomUUID();
     }
     next();
   } catch (e) {
