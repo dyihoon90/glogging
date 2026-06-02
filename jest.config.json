@@ -5,8 +5,11 @@
   "testTimeout": 10000,
   "preset": "ts-jest",
   "transform": {
-    "^.+\\.ts?$": "ts-jest"
+    "^.+\\.[jt]s?$": ["ts-jest", { "tsconfig": { "allowJs": true } }]
   },
+  "transformIgnorePatterns": [
+     "node_modules/(?!(uuid)/)"
+  ],
   "testMatch": ["**/__tests__/**/*.test.[jt]s?(x)"],
   "reporters": [
     "default",
